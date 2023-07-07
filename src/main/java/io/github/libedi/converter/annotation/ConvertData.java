@@ -30,7 +30,7 @@ import io.github.libedi.converter.ByteToObjectConverter;
  * </ul>
  * </p>
  * <p>
- * 사용법은 아래와 같습니다.
+ * 사용법은 아래와 같습니다:
  * </p>
  *
  * <pre>
