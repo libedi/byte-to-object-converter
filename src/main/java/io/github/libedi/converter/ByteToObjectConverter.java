@@ -61,13 +61,13 @@ import io.github.libedi.converter.annotation.Iteration;
  * 수 있습니다.
  * </p>
  * <p>
- * List 타입을 가진 반복되는 필드의 경우, {@link Iteration @Iteration} 애노테이션으로 지정합니다. 반복 횟수는
- * 고정 반복 횟수를 지정하는 {@link Iteration#value() value} 속성과 다른 필드값에 따라 반복되는
- * {@link Iteration#countField() countField} 속성으로 지정합니다.
+ * <code>List</code> 타입을 가진 반복되는 필드의 경우, {@link Iteration @Iteration} 애노테이션으로
+ * 지정합니다. 반복 횟수는 고정 반복 횟수를 지정하는 {@link Iteration#value() value} 속성과 다른 필드값에 따라
+ * 반복되는 {@link Iteration#countField() countField} 속성으로 지정합니다.
  * {@link Iteration#countField() countField} 는 필드명을 <code>String</code>으로 지정하며,
  * 해당 필드의 타입은 반드시 <code>int</code>여야 합니다.<br/>
- * {@link Iteration @Iteration} 애노테이션이 지정한 필드는 반드시 List의 제네릭 타입을 지정해야 합니다. 해당
- * 제네릭 타입의 클래스 필드는 반드시 {@link ConvertData @ConvertData},
+ * {@link Iteration @Iteration} 애노테이션이 지정한 필드는 반드시 <code>List</code>의 제네릭 타입을
+ * 지정해야 합니다. 해당 제네릭 타입의 클래스 필드는 반드시 {@link ConvertData @ConvertData},
  * {@link Iteration @Iteration} 또는 {@link Embeddable @Embeddable} 애노테이션이 지정되어
  * 있어야 합니다.
  * </p>
