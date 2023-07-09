@@ -343,7 +343,7 @@ public class ByteToObjectConverter {
             return value;
         }
         if (hasAdditionalType(fieldType)) {
-            return invokeAdditionalField(fieldType);
+            return invokeAdditionalField(fieldType, value);
         }
         if (ClassUtils.isAssignable(Month.class, fieldType)) {
             return ReflectionUtils.invokeMethod(fieldType.getMethod("of", int.class), null, Integer.valueOf(value));
@@ -408,9 +408,10 @@ public class ByteToObjectConverter {
      * 사용자 정의 필드 타입 값 설정
      *
      * @param fieldType
+     * @param value
      * @return
      */
-    protected Object invokeAdditionalField(final Class<?> fieldType) {
+    protected Object invokeAdditionalField(final Class<?> fieldType, final String value) {
         return null;
     }
 
