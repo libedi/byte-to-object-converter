@@ -18,7 +18,8 @@ import io.github.libedi.converter.ByteToObjectConverter;
  * 타입이 date-time 타입이면, {@link #format} 속성으로 데이터의 format을 지정할 수 있습니다.
  * </p>
  * <p>
- * Object내 다양한 타입을 지원합니다. 지원되는 타입은 아래와 같습니다.
+ * Object내 다양한 타입을 지원합니다. 지원되는 타입은 아래와 같습니다:
+ * </p>
  * <ul>
  * <li><code>byte[]</code></li>
  * <li>{@link String}</li>
@@ -28,7 +29,7 @@ import io.github.libedi.converter.ByteToObjectConverter;
  * <li>java.time 패키지의 date-time class</li>
  * <li>사용자 정의 타입</li>
  * </ul>
- * </p>
+ * 
  * <p>
  * 사용법은 아래와 같습니다:
  * </p>

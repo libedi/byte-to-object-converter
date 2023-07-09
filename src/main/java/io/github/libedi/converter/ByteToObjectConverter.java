@@ -37,7 +37,8 @@ import io.github.libedi.converter.annotation.Iteration;
  * 도와줍니다.
  * </p>
  * <p>
- * Object내 다양한 타입을 지원합니다. 지원되는 타입은 아래와 같습니다.
+ * Object내 다양한 타입을 지원합니다. 지원되는 타입은 아래와 같습니다:
+ * </p>
  * <ul>
  * <li><code>byte[]</code></li>
  * <li>{@link String}</li>
@@ -49,8 +50,10 @@ import io.github.libedi.converter.annotation.Iteration;
  * <li>{@link List}
  * <li>사용자 정의 Value Object</li>
  * </ul>
+ * <p>
  * 대상 Object는 반드시 기본 생성자를 갖고 있어야 합니다. (private 접근자도 가능)
  * </p>
+ * 
  * <p>
  * 기본적으로 {@link ConvertData @ConvertData} 애노테이션으로 변환 필드를 지정합니다. 필드 변환 순서는 클래스에
  * 정의한 필드 순서를 따릅니다. 데이터의 길이는 {@link ConvertData @ConvertData} 애노테이션의
