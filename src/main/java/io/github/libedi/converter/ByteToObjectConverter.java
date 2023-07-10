@@ -58,7 +58,7 @@ import io.github.libedi.converter.annotation.Iteration;
  * 기본적으로 {@link ConvertData @ConvertData} 애노테이션으로 변환 필드를 지정합니다. 필드 변환 순서는 클래스에
  * 정의한 필드 순서를 따릅니다. 데이터의 길이는 {@link ConvertData @ConvertData} 애노테이션의
  * {@link ConvertData#value() value} 속성으로 지정합니다. 만약, 데이터의 길이가 다른 필드값에 정의되어 있다면,
- * {@link ConvertData#lenghField() lengthField} 속성으로 해당 필드명을
+ * {@link ConvertData#lengthField() lengthField} 속성으로 해당 필드명을
  * <code>String</code>으로 지정하며, 해당하는 필드의 타입은 반드시 <code>int</code>여야 합니다. 변환 필드의
  * 타입이 date-time 타입이면, {@link ConvertData#format() format} 속성으로 데이터의 format을 지정할
  * 수 있습니다.
@@ -281,7 +281,7 @@ public class ByteToObjectConverter {
             return readAllInputStream(inputStream);
         }
         if (length == 0) {
-            length = (int) ReflectionUtils.getField(ReflectionUtils.findField(type, convertData.lenghField()),
+            length = (int) ReflectionUtils.getField(ReflectionUtils.findField(type, convertData.lengthField()),
                     targetObject);
         }
         return readInputStream(inputStream, length);
@@ -342,11 +342,12 @@ public class ByteToObjectConverter {
         if (ClassUtils.isAssignable(String.class, fieldType)) {
             return value;
         }
-        if (hasAdditionalType(fieldType)) {
-            return invokeAdditionalField(fieldType, value);
-        }
-        if (ClassUtils.isAssignable(Month.class, fieldType)) {
-            return ReflectionUtils.invokeMethod(fieldType.getMethod("of", int.class), null, Integer.valueOf(value));
+        try {
+            if (hasAdditionalType(fieldType)) {
+                return invokeAdditionalField(fieldType, value);
+            }
+        } catch (final Exception e) {
+            throw new RuntimeException(e);
         }
         if (!ClassUtils.isAssignable(Void.class, fieldType) && ClassUtils.isPrimitiveOrWrapper(fieldType)
                 || fieldType.isEnum()) {
@@ -362,6 +363,9 @@ public class ByteToObjectConverter {
             return ReflectionUtils.invokeMethod(
                     fieldType.getMethod("parse", CharSequence.class, DateTimeFormatter.class), null, value,
                     DateTimeFormatter.ofPattern(format));
+        }
+        if (ClassUtils.isAssignable(Month.class, fieldType)) {
+            return ReflectionUtils.invokeMethod(fieldType.getMethod("of", int.class), null, Integer.valueOf(value));
         }
         return null;
     }
@@ -400,7 +404,7 @@ public class ByteToObjectConverter {
      * @param fieldType
      * @return
      */
-    protected boolean hasAdditionalType(final Class<?> fieldType) {
+    protected boolean hasAdditionalType(final Class<?> fieldType) throws Exception {
         return false;
     }
 
@@ -411,7 +415,7 @@ public class ByteToObjectConverter {
      * @param value
      * @return
      */
-    protected Object invokeAdditionalField(final Class<?> fieldType, final String value) {
+    protected Object invokeAdditionalField(final Class<?> fieldType, final String value) throws Exception {
         return null;
     }
 

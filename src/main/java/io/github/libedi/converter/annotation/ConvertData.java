@@ -13,7 +13,7 @@ import io.github.libedi.converter.ByteToObjectConverter;
  * <p>
  * 변환할 필드를 지정하기 위한 애노테이션. 필드 변환 순서는 클래스에 선언한 필드 순서를 따릅니다. 변환할 byte 데이터의 길이는
  * {@link ConvertData @ConvertData} 애노테이션의 {@link #value} 속성으로 지정합니다. 만약, 필드의
- * 데이터 길이가 다른 필드의 값으로 지정되어 있는 경우, {@link #lenghField} 속성으로 데이터 길이가 지정된 필드명을
+ * 데이터 길이가 다른 필드의 값으로 지정되어 있는 경우, {@link #lengthField} 속성으로 데이터 길이가 지정된 필드명을
  * <code>String</code>으로 지정하며, 지정된 필드의 타입은 반드시 <code>int</code> 여야 합니다. 변환 필드의
  * 타입이 date-time 타입이면, {@link #format} 속성으로 데이터의 format을 지정할 수 있습니다.
  * </p>
@@ -73,7 +73,7 @@ public @interface ConvertData {
      *
      * @return
      */
-    String lenghField() default "";
+    String lengthField() default "";
 
     /**
      * 날짜 포맷
