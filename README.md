@@ -1,7 +1,7 @@
 # **byte-to-object-converter**
 ***byte-to-object-converter*** makes it easy to convert data from a byte array to an Object. 
 
-Still existing legacy code specializes in byte array data. When converting such byte array data to Object, a lot of boilerplate code is required for data parsing and field type conversion.  
+Still using byte array data telegrams in old legacy code. When converting such byte array data to Object, a lot of boilerplate code is required for data parsing and field type conversion.  
 ***byte-to-object-converter*** reduces these tedious tasks and helps developers focus on the design of their business domain.
 
 ## **Support Type**
