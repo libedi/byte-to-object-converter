@@ -1,8 +1,8 @@
 # **byte-to-object-converter**
-***byte-to-object-converter*** makes it easy to convert data from a byte array to an Object. 
+***byte-to-object-converter*** simplifies the process of converting data from a byte array into an Object. 
 
-Still using byte array data telegrams in old legacy code. When converting such byte array data to Object, a lot of boilerplate code is required for data parsing and field type conversion.  
-***byte-to-object-converter*** reduces these tedious tasks and helps developers focus on the design of their business domain.
+If you're still using byte array data telegrams in your old legacy code, converting such byte array data to Object can require plenty of boilerplate code for parsing and field type conversion.  
+***byte-to-object-converter*** minimizes these tedious tasks and allows developers to focus on designing their business domain.
 
 ## **Support Type**
 ***byte-to-object-converter*** supports various field types when converting Object.  
@@ -21,9 +21,9 @@ Supported types are:
 | The target Object must have a default constructor. (private accessors are also available) |
 
 ## **How to use**
-**`ByteToObjectConverter`** can be used to convert data from a byte array to an Object.  
-**`ByteToObjectConverter`** takes as a constructor parameter the charset of the data you want to convert.  
-After that, convert the data in the byte array to an InputStream, and **`ByteToObjectConverter.convert()`** convert it to the desired Object using as follows.
+**`ByteToObjectConverter`** is a tool that enables the conversion of data from a byte array to an Object.  
+To use **`ByteToObjectConverter`** , provide the charset of the data you want to convert as a constructor parameter.  
+Once you've done that, convert the data in the byte array into an InputStream. Then, use **`ByteToObjectConverter.convert()`** to transform the data into the desired Object, as shown below.
 ~~~java
 Charset dataCharset = Charset.forName("UTF-8");
 ByteToObjectConverter converter = new ByteObjectConverter(dataCharset);
@@ -39,35 +39,35 @@ Use the following annotations to specify the data in the byte array as the field
 
 ### **1. `@ConvertData`**
 #### ***Annotation to specify which fields to transform***
-By default, you specify transform fields with the **`@CovertData`** annotation.  
-The field conversion order follows the order of the fields declared in the class.  
-The length of the byte data to be converted is specified with the **`value`** attribute of the **`@ConvertData`** annotation. If the data length of the field is specified as the value of another field, the data length is specified with the **`lengthField`** attribute, the field name is specified as `String`, and the type of the specified field must be `int`.  
-If the conversion field type is a date-time type, the format of the data can be specified with the **`format`** attribute.
+By default, you define transform fields using the @ConvertData annotation.  
+The order of field conversion follows the sequence in which the fields are declared within the class.  
+The length of the byte data to be converted is determined by the **`value`** attribute of the **`@ConvertData`** annotation. If the data length of the field is specified as the value of another field, you can set the data length using the **`lengthField`** attribute, providing the field name as `String`, and ensuring that the specified field's type is an integer.
+For fields with date-time type conversions, you can specify the data format using the **`format`** attribute.
 
 Usage is as follows:
 ~~~java
-// String data whose length is 14 bytes
+// String data with a length of 14 bytes
 @ConvertData(14)
 String string;
 
-// int type data whose data length is 4 bytes
+// integer type data with a length of 4 bytes
 @ConvertData(4)
 int length;
 
-// byte[] data whose length is equal to the value of the length field
+// byte[] data with a length equal to the value of the length field
 @ConvertData(lengthField = "length")
 byte[] bytes;
 
-// Date-type data whose length is 8 bytes
+// Date-type data with a length of 8 bytes
 @ConvertData(value = 8, format = "yyyyMMdd")
 LocalDate date;
 ~~~
 
 ### **2. `@Iteration`**
 #### ***Annotation for converting repeated fields with `List` type***
-For repeated fields of `List` type, use the **`@Iteration`** annotation.  
-The number of repetitions is specified by the **`value`** attribute, which specifies a fixed number of repetitions, and the **`countField`** attribute, which repeats according to the value of another field. **`countField`** specifies the field name as `String`, and the field type must be `int`.  
-Fields specified with the **`@Iteration`** annotation must specify the generic type of `List`. Fields in the class of that generic type must be annotated with **`@ConvertData`**, **`@Iteration`** or **`@Embeddable`**.
+For `List` type fields with repeated elements, use the **`@Iteration`** annotation.  
+The number of repetitions is determined either by the **`value`** attribute, which sets a fixed number of repetitions, or by the **`countField`** attribute, which repeats based on the value of another field. The **`countField`** specifies the field name as `String`, and the field type must be an integer.  
+Fields marked with the **`@Iteration`** annotation must specify the generic type of `List`. Fields in the class of that generic type must be annotated with **`@ConvertData`**, **`@Iteration`** or **`@Embeddable`**.
 
 Usage is as follows:
 ~~~java
@@ -85,8 +85,8 @@ List<VO> fieldIterationList;
 
 ### **3. `@Embeddable`**
 #### ***Annotations to transform custom Value Object fields***
-To increase data cohesion, you can use a user-defined value object as a field of the target object.  
-Fields inside VO must be annotated with **`@ConvertData`**, **`@Iteration`** or **`@Embeddable`**.
+To enhance data cohesion, you can utilize a user-defined value object (VO) as a field of the target object.  
+Fields within the value object must be annotated with **`@ConvertData`**, **`@Iteration`** or **`@Embeddable`**.
 
 Usage is as follows:
 ~~~java
