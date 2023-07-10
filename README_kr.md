@@ -27,7 +27,9 @@
 ~~~java
 Charset dataCharset = Charset.forName("UTF-8");
 ByteToObjectConverter converter = new ByteObjectConverter(dataCharset);
-CustomType object = converter.convert(bytesData, CustomType.class);
+
+InputStream inputStream = new ByteArrayInputStream(bytesData);
+CustomType object = converter.convert(inputStream, CustomType.class);
 ~~~
 
 byte 배열의 데이터를 Object 내 변환하려는 필드로 지정하기 위해 아래의 애노테이션을 사용합니다:
