@@ -46,21 +46,26 @@ byte 배열의 데이터를 Object 내 변환하려는 필드로 지정하기 �
 
 사용법은 아래와 같습니다:
 ~~~java
-// 데이터의 길이가 14 byte인 문자열 데이터
-@ConvertData(14)
-String string;
+public class CustomType {
 
-// 데이터의 길이가 4 byte인 int 형 데이터
-@ConvertData(4)
-int length;
+    // 데이터의 길이가 14 byte인 문자열 데이터
+    @ConvertData(14)
+    String string;
 
-// 데이터의 길이가 length 필드의 값만큼 가진 byte[] 데이터
-@ConvertData(lengthField = "length")
-byte[] bytes;
+    // 데이터의 길이가 4 byte인 int 형 데이터
+    @ConvertData(4)
+    int length;
 
-// 데이터의 길이가 8 byte인 날짜형 데이터
-@ConvertData(value = 8, format = "yyyyMMdd")
-LocalDate date;
+    // 데이터의 길이가 length 필드의 값만큼 가진 byte[] 데이터
+    @ConvertData(lengthField = "length")
+    byte[] bytes;
+
+    // 데이터의 길이가 8 byte인 날짜형 데이터
+    @ConvertData(value = 8, format = "yyyyMMdd")
+    LocalDate date;
+
+    // ...
+}
 ~~~
 
 ### **2. `@Iteration`**
@@ -71,16 +76,22 @@ LocalDate date;
 
 사용법은 아래와 같습니다:
 ~~~java
-// 반복 횟수가 3으로 고정된 데이터
-@Iteration(3)
-List<VO> fixedIterationList;
+public class CustomType {
+    // ...
 
-@ConvertData(4)
-int count;
+    // 반복 횟수가 3으로 고정된 데이터
+    @Iteration(3)
+    List<VO> fixedIterationList;
 
-// count 필드의 값만큼 반복하는 데이터
-@Iteration(countField = "count")
-List<VO> fieldIterationList;
+    @ConvertData(4)
+    int count;
+
+    // count 필드의 값만큼 반복하는 데이터
+    @Iteration(countField = "count")
+    List<VO> fieldIterationList;
+
+    // ...
+}
 ~~~
 
 ### **3. `@Embeddable`**
@@ -90,8 +101,14 @@ VO 내부 필드는 반드시 **`@ConvertData`**, **`@Iteration`** 또는 **`@Em
 
 사용법은 아래와 같습니다:
 ~~~java
-@Embeddable
-CustomVo customVo;
+public class CustomType {
+    // ...
+
+    @Embeddable
+    CustomVo customVo;
+
+    // ...
+}
 ~~~
 
 ## **최소 사양**
@@ -104,10 +121,10 @@ CustomVo customVo;
 <dependency>
     <groupId>io.github.libedi</groupId>
     <artifactId>byte-to-object-converter</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 </dependency>
 ~~~
 - ### **Gradle**
 ~~~groovy
-implementation 'io.github.libedi:byte-to-object-converter:1.0.1'
+implementation 'io.github.libedi:byte-to-object-converter:1.0.2'
 ~~~

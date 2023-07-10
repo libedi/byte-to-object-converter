@@ -46,21 +46,26 @@ For fields with date-time type conversions, you can specify the data format usin
 
 Usage is as follows:
 ~~~java
-// String data with a length of 14 bytes
-@ConvertData(14)
-String string;
+public class CustomType {
 
-// integer type data with a length of 4 bytes
-@ConvertData(4)
-int length;
+    // String data with a length of 14 bytes
+    @ConvertData(14)
+    String string;
 
-// byte[] data with a length equal to the value of the length field
-@ConvertData(lengthField = "length")
-byte[] bytes;
+    // integer type data with a length of 4 bytes
+    @ConvertData(4)
+    int length;
 
-// Date-type data with a length of 8 bytes
-@ConvertData(value = 8, format = "yyyyMMdd")
-LocalDate date;
+    // byte[] data with a length equal to the value of the length field
+    @ConvertData(lengthField = "length")
+    byte[] bytes;
+
+    // Date-type data with a length of 8 bytes
+    @ConvertData(value = 8, format = "yyyyMMdd")
+    LocalDate date;
+
+    // ...
+}
 ~~~
 
 ### **2. `@Iteration`**
@@ -71,16 +76,22 @@ Fields marked with the **`@Iteration`** annotation must specify the generic type
 
 Usage is as follows:
 ~~~java
-// Data with a fixed number of iterations of 3
-@Iteration(3)
-List<VO> fixedIterationList;
+public class CustomType {
+    // ...
 
-@ConvertData(4)
-int count;
+    // Data with a fixed number of iterations of 3
+    @Iteration(3)
+    List<VO> fixedIterationList;
 
-// Data that repeats as many times as the value of the count field
-@Iteration(countField = "count")
-List<VO> fieldIterationList;
+    @ConvertData(4)
+    int count;
+
+    // Data that repeats as many times as the value of the count field
+    @Iteration(countField = "count")
+    List<VO> fieldIterationList;
+
+    // ...
+}
 ~~~
 
 ### **3. `@Embeddable`**
@@ -90,8 +101,14 @@ Fields within the value object must be annotated with **`@ConvertData`**, **`@It
 
 Usage is as follows:
 ~~~java
-@Embeddable
-CustomVo customVo;
+public class CustomType {
+    // ...
+
+    @Embeddable
+    CustomVo customVo;
+
+    // ...
+}
 ~~~
 
 ## **Requirements**
@@ -104,10 +121,10 @@ CustomVo customVo;
 <dependency>
     <groupId>io.github.libedi</groupId>
     <artifactId>byte-to-object-converter</artifactId>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
 </dependency>
 ~~~
 - ### **Gradle**
 ~~~groovy
-implementation 'io.github.libedi:byte-to-object-converter:1.0.1'
+implementation 'io.github.libedi:byte-to-object-converter:1.0.2'
 ~~~
