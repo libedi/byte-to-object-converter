@@ -121,10 +121,10 @@ public class CustomType {
 <dependency>
     <groupId>io.github.libedi</groupId>
     <artifactId>byte-to-object-converter</artifactId>
-    <version>1.0.2</version>
+    <version>1.1.0</version>
 </dependency>
 ~~~
 - ### **Gradle**
 ~~~groovy
-implementation 'io.github.libedi:byte-to-object-converter:1.0.2'
+implementation 'io.github.libedi:byte-to-object-converter:1.1.0'
 ~~~
