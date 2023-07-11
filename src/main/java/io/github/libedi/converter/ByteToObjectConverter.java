@@ -91,6 +91,10 @@ public class ByteToObjectConverter {
 
     private final Charset dataCharset;
 
+    public ByteToObjectConverter() {
+        dataCharset = Charset.defaultCharset();
+    }
+
     public ByteToObjectConverter(final Charset dataCharset) {
         this.dataCharset = dataCharset;
     }
