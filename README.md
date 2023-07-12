@@ -1,4 +1,4 @@
-# **byte-to-object-converter**
+# **Byte to Object Converter**
 ***byte-to-object-converter*** simplifies the process of converting data from a byte array into an Object. 
 
 If you're still using byte array data telegrams in your old legacy code, converting such byte array data to Object can require plenty of boilerplate code for parsing and field type conversion.  
