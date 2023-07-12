@@ -1,4 +1,4 @@
-# **byte-to-object-converter**
+# **Byte to Object Converter**
 ***byte-to-object-converter*** 는 byte 배열의 데이터를 Object로 쉽게 변환해줍니다. 
 
 아직도 기존 레거시 코드에서는 byte 배열 데이터를 전문으로 사용하고 있습니다. 이러한 byte 배열의 데이터를 Object로 변환시 데이터 파싱 및 필드 타입 변환에 많은 boilerplate 코드가 필요합니다.  
