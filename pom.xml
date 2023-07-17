@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.github.libedi</groupId>
   <artifactId>byte-to-object-converter</artifactId>
-  <version>1.1.0</version>
+  <version>1.1.1</version>
   <name>byte-to-object-converter</name>
   <description>Byte To Object Converter</description>
   <url>https://github.com/libedi/byte-to-object-converter</url>
@@ -142,6 +142,11 @@
                     </configuration>
                 </execution>
             </executions>
+        </plugin>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <version>3.0.0</version>
         </plugin>
         <plugin>
             <groupId>org.apache.maven.plugins</groupId>

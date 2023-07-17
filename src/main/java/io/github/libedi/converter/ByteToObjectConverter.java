@@ -353,6 +353,9 @@ public class ByteToObjectConverter {
         } catch (final Exception e) {
             throw new RuntimeException(e);
         }
+        if (ClassUtils.isAssignable(Month.class, fieldType)) {
+            return ReflectionUtils.invokeMethod(fieldType.getMethod("of", int.class), null, Integer.valueOf(value));
+        }
         if (!ClassUtils.isAssignable(Void.class, fieldType) && ClassUtils.isPrimitiveOrWrapper(fieldType)
                 || fieldType.isEnum()) {
             final Class<?> type = fieldType.isPrimitive() ? ClassUtils.resolvePrimitiveIfNecessary(fieldType)
@@ -367,9 +370,6 @@ public class ByteToObjectConverter {
             return ReflectionUtils.invokeMethod(
                     fieldType.getMethod("parse", CharSequence.class, DateTimeFormatter.class), null, value,
                     DateTimeFormatter.ofPattern(format));
-        }
-        if (ClassUtils.isAssignable(Month.class, fieldType)) {
-            return ReflectionUtils.invokeMethod(fieldType.getMethod("of", int.class), null, Integer.valueOf(value));
         }
         return null;
     }
