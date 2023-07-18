@@ -23,7 +23,7 @@
 ## **사용 방법**
 **`ByteToObjectConverter`** 를 사용하여 byte 배열의 데이터를 Object로 변환할 수 있습니다.  
 **`ByteToObjectConverter`** 는 생성자 매개변수로 변환하려는 데이터의 문자셋을 받습니다.  
-그 후, byte 배열의 데이터를 InputStream으로 변환하고, 다음과 같이 **`ByteToObjectConverter.convert()`** 를 사용하여 원하는 Object로 변환합니다.
+그 후, byte 배열의 데이터를 `InputStream`으로 변환하고, 다음과 같이 **`ByteToObjectConverter.convert()`** 를 사용하여 원하는 Object로 변환합니다.
 ~~~java
 Charset dataCharset = Charset.forName("UTF-8");
 ByteToObjectConverter converter = new ByteObjectConverter(dataCharset);
