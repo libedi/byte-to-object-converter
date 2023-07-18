@@ -23,7 +23,7 @@ Supported types are:
 ## **How to use**
 **`ByteToObjectConverter`** is a tool that enables the conversion of data from a byte array to an Object.  
 To use **`ByteToObjectConverter`** , provide the charset of the data you want to convert as a constructor parameter.  
-Once you've done that, convert the data in the byte array into an InputStream. Then, use **`ByteToObjectConverter.convert()`** to transform the data into the desired Object, as shown below.
+Once you've done that, convert the data in the byte array into an `InputStream`. Then, use **`ByteToObjectConverter.convert()`** to transform the data into the desired Object, as shown below.
 ~~~java
 Charset dataCharset = Charset.forName("UTF-8");
 ByteToObjectConverter converter = new ByteObjectConverter(dataCharset);

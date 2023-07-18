@@ -99,6 +99,10 @@ public class ByteToObjectConverter {
         this.dataCharset = dataCharset;
     }
 
+    public ByteToObjectConverter(final String dataCharset) {
+        this.dataCharset = Charset.forName(dataCharset);
+    }
+
     /**
      * byte[] 데이터를 Object로 변환
      *
