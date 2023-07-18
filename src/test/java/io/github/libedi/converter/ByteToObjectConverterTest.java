@@ -59,6 +59,7 @@ class ByteToObjectConverterTest {
                 LocalDateTime.parse(expected.getDateTimeValue().format(DateTimeFormatter.ofPattern(DATETIME_FORMAT)),
                         DateTimeFormatter.ofPattern(DATETIME_FORMAT)));
         ReflectionTestUtils.setField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size());
+        ReflectionTestUtils.setField(expected, "voList", expected.getVoList().subList(0, 2));
 
         final InputStream inputStream = new ByteArrayInputStream(convertTestData(expected));
 
@@ -67,6 +68,22 @@ class ByteToObjectConverterTest {
 
         // then
         assertThat(actual).usingRecursiveComparison().isEqualTo(expected);
+    }
+
+    @DisplayName("byte 데이터가 없어도 대상 Object의 List 필드는 empty List가 반환되는지 테스트")
+    @ParameterizedTest
+    @AutoSource
+    @Customization(BuilderCustomizer.class)
+    void convert_whenNoDataThenReturnEmptyListField() {
+        // given
+        final InputStream inputStream = new ByteArrayInputStream(new byte[] {});
+
+        // when
+        final TestObject actual = converter.convert(inputStream, TestObject.class);
+
+        // then
+        assertThat(actual).isNotNull();
+        assertThat(actual.getVoList()).isNotNull().isEmpty();
     }
 
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -101,6 +118,9 @@ class ByteToObjectConverterTest {
         private TestVO voValue;
         @Embeddable
         private TestNestedLoop nestedLoopValue;
+
+        @Iteration(2)
+        private List<TestVO> voList;
 
     }
 
@@ -158,11 +178,18 @@ class ByteToObjectConverterTest {
                                 + StringUtils.rightPad(String.valueOf(vo.getVoIntValue()), 15))
                         .collect(Collectors.joining());
 
+        final List<TestVO> voList = expected.getVoList();
+        final String dataString4 = voList.stream()
+                .map(vo -> StringUtils.rightPad(vo.getVoStringValue(), 100)
+                        + StringUtils.rightPad(String.valueOf(vo.getVoIntValue()), 15))
+                .collect(Collectors.joining());
+
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
         baos.write(dataString1.getBytes(DATA_CHARSET));
         baos.write(expected.getByteValue());
         baos.write(dataString2.getBytes(DATA_CHARSET));
         baos.write(dataString3.getBytes(DATA_CHARSET));
+        baos.write(dataString4.getBytes(DATA_CHARSET));
         return baos.toByteArray();
     }
 

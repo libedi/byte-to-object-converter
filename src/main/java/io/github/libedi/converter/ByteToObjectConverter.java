@@ -168,7 +168,7 @@ public class ByteToObjectConverter {
     private <T> void convertDataByField(final Field field, final InputStream inputStream, final T targetObject,
             final Class<T> type) {
         try {
-            if (inputStream.available() == 0) {
+            if (inputStream.available() == 0 && !field.isAnnotationPresent(Iteration.class)) {
                 return;
             }
             ReflectionUtils.makeAccessible(field);
@@ -198,9 +198,11 @@ public class ByteToObjectConverter {
      * @param targetObject
      * @param type
      * @return
+     * @throws NoSuchMethodException
+     * @throws IOException
      */
     private <T> Object extractData(final Field field, final InputStream inputStream, final T targetObject,
-            final Class<T> type) throws NoSuchMethodException {
+            final Class<T> type) throws NoSuchMethodException, IOException {
         if (field.isAnnotationPresent(Iteration.class) || ClassUtils.isAssignable(List.class, field.getType())) {
             return extractIteratedData(field, inputStream, targetObject, type);
         }
@@ -219,12 +221,13 @@ public class ByteToObjectConverter {
      * @param targetObject
      * @param type
      * @return
+     * @throws IOException
      */
     private <T> List<?> extractIteratedData(final Field field, final InputStream inputStream, final T targetObject,
-            final Class<T> type) {
+            final Class<T> type) throws IOException {
         final Iteration iteration = field.getAnnotation(Iteration.class);
         final Class<?> genericType = getGenericType(field);
-        return IntStream.range(0, getCount(targetObject, type, iteration))
+        return IntStream.range(0, inputStream.available() == 0 ? 0 : getCount(targetObject, type, iteration))
                 .mapToObj(i -> convert(inputStream, genericType))
                 .collect(Collectors.toList());
     }
@@ -327,12 +330,11 @@ public class ByteToObjectConverter {
 
     /**
      * 필드 타입별 데이터 값 설정
-     *
+     * 
      * @param field
      * @param bytes
      * @return
      * @throws NoSuchMethodException
-     * @throws
      */
     private Object invokeSetValueByFieldType(final Field field, final byte[] bytes) throws NoSuchMethodException {
         final Class<?> fieldType = field.getType();
@@ -407,6 +409,7 @@ public class ByteToObjectConverter {
      *
      * @param fieldType
      * @return
+     * @throws Exception
      */
     protected boolean hasAdditionalType(final Class<?> fieldType) throws Exception {
         return false;
@@ -418,6 +421,7 @@ public class ByteToObjectConverter {
      * @param fieldType
      * @param value
      * @return
+     * @throws Exception
      */
     protected Object invokeAdditionalField(final Class<?> fieldType, final String value) throws Exception {
         return null;
