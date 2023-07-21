@@ -74,7 +74,7 @@ For fields with date-time type conversions, you can specify the data format usin
 
 Usage is as follows:
 ~~~java
-public class CustomType {
+public class CustomObject {
 
     // String data with a length of 14 bytes
     @ConvertData(14)
@@ -104,7 +104,7 @@ Fields marked with the **`@Iteration`** annotation must specify the generic type
 
 Usage is as follows:
 ~~~java
-public class CustomType {
+public class CustomObject {
     // ...
 
     // Data with a fixed number of iterations of 3
@@ -129,7 +129,7 @@ Fields within the value object must be annotated with **`@ConvertData`**, **`@It
 
 Usage is as follows:
 ~~~java
-public class CustomType {
+public class CustomObject {
     // ...
 
     @Embeddable
