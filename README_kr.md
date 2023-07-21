@@ -22,7 +22,7 @@
 
 ## **사용 방법**
 **`ByteToObjectConverter`** 를 사용하여 byte 배열의 데이터를 Object로 변환할 수 있습니다.  
-**`ByteToObjectConverter`** 는 생성자 매개변수로 변환하려는 데이터의 캐릭터셋을 받습니다. 만약 현재 시스템과 연동 시스템이 동일한 캐릭터셋을 사용하다면, 기본 생성자를 사용할 수 있습니다.  
+**`ByteToObjectConverter`** 는 변환하려는 데이터의 캐릭터셋을 생성자 매개변수로 받습니다. 만약 현재 시스템과 연동 시스템이 동일한 캐릭터셋을 사용하다면, 기본 생성자를 사용할 수 있습니다.  
 **`ByteToObjectConverter`** 는 다음과 같이 생성합니다.
 ~~~java
 // 생성자 매개변수 : java.nio.charset.Charset
