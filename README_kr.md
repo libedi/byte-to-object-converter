@@ -75,7 +75,7 @@ byte 배열의 데이터를 Object 내 변환하려는 필드로 지정하기 �
 
 사용법은 아래와 같습니다:
 ~~~java
-public class CustomType {
+public class CustomObject {
 
     // 데이터의 길이가 14 byte인 문자열 데이터
     @ConvertData(14)
@@ -105,7 +105,7 @@ public class CustomType {
 
 사용법은 아래와 같습니다:
 ~~~java
-public class CustomType {
+public class CustomObject {
     // ...
 
     // 반복 횟수가 3으로 고정된 데이터
@@ -130,7 +130,7 @@ VO 내부 필드는 반드시 **`@ConvertData`**, **`@Iteration`** 또는 **`@Em
 
 사용법은 아래와 같습니다:
 ~~~java
-public class CustomType {
+public class CustomObject {
     // ...
 
     @Embeddable
