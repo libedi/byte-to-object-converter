@@ -22,14 +22,43 @@
 
 ## **사용 방법**
 **`ByteToObjectConverter`** 를 사용하여 byte 배열의 데이터를 Object로 변환할 수 있습니다.  
-**`ByteToObjectConverter`** 는 생성자 매개변수로 변환하려는 데이터의 문자셋을 받습니다.  
-그 후, byte 배열의 데이터를 `InputStream`으로 변환하고, 다음과 같이 **`ByteToObjectConverter.convert()`** 를 사용하여 원하는 Object로 변환합니다.
+**`ByteToObjectConverter`** 는 생성자 매개변수로 변환하려는 데이터의 캐릭터셋을 받습니다. 만약 현재 시스템과 연동 시스템이 동일한 캐릭터셋을 사용하다면, 기본 생성자를 사용할 수 있습니다.  
+**`ByteToObjectConverter`** 는 다음과 같이 생성합니다.
 ~~~java
+// 생성자 매개변수 : java.nio.charset.Charset
 Charset dataCharset = Charset.forName("UTF-8");
 ByteToObjectConverter converter = new ByteObjectConverter(dataCharset);
 
+// 생성자 매개변수 : String
+String dataCharset = "UTF-8";
+ByteToObjectConverter converter = new ByteObjectConverter(dataCharset);
+
+// 기본 생성자 : 시스템 기본 캐릭터셋
+ByteToObjectConverter converter = new ByteObjectConverter();
+~~~
+그 후, byte 배열의 데이터를 `InputStream`으로 변환하고, 다음과 같이 **`ByteToObjectConverter.convert()`** 를 사용하여 원하는 Object로 변환합니다.
+~~~java
 InputStream inputStream = new ByteArrayInputStream(bytesData);
-CustomType object = converter.convert(inputStream, CustomType.class);
+CustomObject object = converter.convert(inputStream, CustomObject.class);
+~~~
+
+기본 지원 타입이 아닌 사용자 정의 타입을 변환할 경우, **`ByteToObjectConverter`** 를 상속받아 사용자 정의 타입과 변환하는 방법을 정의할 수 있습니다.
+~~~java
+import org.springframework.util.ClassUtils;
+
+public class CustomTypeToObjectConverter extends ByteToObjectConverter {
+    // Constructor ...
+
+    @Override
+    protected boolean hasAdditionalType(Class<?> fieldType) throws Exception {
+        return ClassUtils.isAssignable(CustomType.class, fieldType);
+    }
+
+    @Override
+    protected Object invokeAdditionalField(Class<?> fieldType, String value) throws Exception {
+        return ReflectionUtils.invokeMethod(fieldType.getMethod("parse", String.class), null, value);
+    }
+}
 ~~~
 
 byte 배열의 데이터를 Object 내 변환하려는 필드로 지정하기 위해 아래의 애노테이션을 사용합니다:
