@@ -22,14 +22,42 @@ Supported types are:
 
 ## **How to use**
 **`ByteToObjectConverter`** is a tool that enables the conversion of data from a byte array to an Object.  
-To use **`ByteToObjectConverter`** , provide the charset of the data you want to convert as a constructor parameter.  
-Once you've done that, convert the data in the byte array into an `InputStream`. Then, use **`ByteToObjectConverter.convert()`** to transform the data into the desired Object, as shown below.
+To use **`ByteToObjectConverter`** , provide the charset of the data you want to convert as a constructor parameter. If the current system and the connected system use the same character set, you can use the default constructor.  
+**`ByteToObjectConverter`** is created as follows:
 ~~~java
+// Constructor Parameter : java.nio.charset.Charset
 Charset dataCharset = Charset.forName("UTF-8");
 ByteToObjectConverter converter = new ByteObjectConverter(dataCharset);
 
+// Constructor Parameter : String
+String dataCharset = "UTF-8";
+ByteToObjectConverter converter = new ByteObjectConverter(dataCharset);
+
+// Default Constructor : System default character set
+ByteToObjectConverter converter = new ByteObjectConverter();
+~~~
+Once you've done that, convert the data in the byte array into an `InputStream`. Then, use **`ByteToObjectConverter.convert()`** to transform the data into the desired Object, as shown below.
+~~~java
 InputStream inputStream = new ByteArrayInputStream(bytesData);
-CustomType object = converter.convert(inputStream, CustomType.class);
+CustomObject object = converter.convert(inputStream, CustomObject.class);
+~~~
+For converting user-defined types that are not default supported types, you can inherit **`ByteToObjectConverter`** and define the method to convert between the user-defined type.
+~~~java
+import org.springframework.util.ClassUtils;
+
+public class CustomTypeToObjectConverter extends ByteToObjectConverter {
+    // Constructor ...
+
+    @Override
+    protected boolean hasAdditionalType(Class<?> fieldType) throws Exception {
+        return ClassUtils.isAssignable(CustomType.class, fieldType);
+    }
+
+    @Override
+    protected Object invokeAdditionalField(Class<?> fieldType, String value) throws Exception {
+        return ReflectionUtils.invokeMethod(fieldType.getMethod("parse", String.class), null, value);
+    }
+}
 ~~~
 
 Use the following annotations to specify the data in the byte array as the field you want to convert in Object:
