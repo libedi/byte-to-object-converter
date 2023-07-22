@@ -15,6 +15,7 @@ import java.time.ZonedDateTime;
 import java.time.chrono.ChronoLocalDate;
 import java.time.chrono.ChronoLocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -208,7 +209,8 @@ public class ByteToObjectConverter {
     private <T> Object extractData(final Field field, final InputStream inputStream, final T targetObject,
             final Class<T> type) throws NoSuchMethodException, IOException {
         if (field.isAnnotationPresent(Iteration.class) || ClassUtils.isAssignable(List.class, field.getType())) {
-            return extractIteratedData(field, inputStream, targetObject, type);
+            return inputStream.available() == 0 ? Collections.emptyList()
+                    : extractIteratedData(field, inputStream, targetObject, type);
         }
         if (field.isAnnotationPresent(Embeddable.class)) {
             return extractEmbeddedData(field, inputStream);
@@ -225,13 +227,12 @@ public class ByteToObjectConverter {
      * @param targetObject
      * @param type
      * @return
-     * @throws IOException
      */
     private <T> List<?> extractIteratedData(final Field field, final InputStream inputStream, final T targetObject,
-            final Class<T> type) throws IOException {
+            final Class<T> type) {
         final Iteration iteration = field.getAnnotation(Iteration.class);
         final Class<?> genericType = getGenericType(field);
-        return IntStream.range(0, inputStream.available() == 0 ? 0 : getCount(targetObject, type, iteration))
+        return IntStream.range(0, getCount(targetObject, type, iteration))
                 .mapToObj(i -> convert(inputStream, genericType))
                 .collect(Collectors.toList());
     }
