@@ -137,6 +137,14 @@ public class CustomObject {
 
     // ...
 }
+
+public class CustomVo {
+
+    @ConvertData
+    String voField1;
+
+    // ...
+}
 ~~~
 
 ## **Requirements**
@@ -149,10 +157,10 @@ public class CustomObject {
 <dependency>
     <groupId>io.github.libedi</groupId>
     <artifactId>byte-to-object-converter</artifactId>
-    <version>1.1.3</version>
+    <version>1.1.4</version>
 </dependency>
 ~~~
 - ### **Gradle**
 ~~~groovy
-implementation 'io.github.libedi:byte-to-object-converter:1.1.3'
+implementation 'io.github.libedi:byte-to-object-converter:1.1.4'
 ~~~
