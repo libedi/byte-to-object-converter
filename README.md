@@ -22,7 +22,7 @@ Supported types are:
 
 ## **How to use**
 **`ByteToObjectConverter`** is a tool that enables the conversion of data from a byte array to an Object.  
-To use **`ByteToObjectConverter`** , provide the charset of the data you want to convert as a constructor parameter. If the current system and the connected system use the same character set, you can use the default constructor.  
+To use **`ByteToObjectConverter`** , provide the character set of the data you want to convert as a constructor parameter. If the current system and the connected system use the same character set, you can use the default constructor.  
 **`ByteToObjectConverter`** is created as follows:
 ~~~java
 // Constructor Parameter : java.nio.charset.Charset
