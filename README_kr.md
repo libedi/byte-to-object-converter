@@ -13,7 +13,7 @@
 - `int` / `long` / `double` 등 `void` 를 제외한 Primitive Type / Wrapper 클래스
 - `java.time` 패키지의 date-time 클래스
 - 사용자 정의 타입 (Value Object가 아닌)
-- `List`
+- `java.util.List`
 - 사용자 정의 Value Object
 
 | :exclamation: important |
@@ -36,27 +36,25 @@ ByteToObjectConverter converter = new ByteObjectConverter(dataCharset);
 // 기본 생성자 : 시스템 기본 캐릭터셋
 ByteToObjectConverter converter = new ByteObjectConverter();
 ~~~
-그 후, byte 배열의 데이터를 `InputStream`으로 변환하고, 다음과 같이 **`ByteToObjectConverter.convert()`** 를 사용하여 원하는 Object로 변환합니다.
+그 후, byte 배열의 데이터를 `java.io.InputStream`으로 변환하고, 다음과 같이 **`ByteToObjectConverter.convert()`** 를 사용하여 원하는 Object로 변환합니다.
 ~~~java
 InputStream inputStream = new ByteArrayInputStream(bytesData);
-CustomObject object = converter.convert(inputStream, CustomObject.class);
+TargetObject object = converter.convert(inputStream, TargetObject.class);
 ~~~
 
 기본 지원 타입이 아닌 사용자 정의 타입을 변환할 경우, **`ByteToObjectConverter`** 를 상속받아 사용자 정의 타입과 변환하는 방법을 정의할 수 있습니다.
 ~~~java
-import org.springframework.util.ClassUtils;
-
 public class CustomTypeToObjectConverter extends ByteToObjectConverter {
     // Constructor ...
 
     @Override
     protected boolean hasAdditionalType(Class<?> fieldType) throws Exception {
-        return ClassUtils.isAssignable(CustomType.class, fieldType);
+        return CustomType.class.isAssignableFrom(fieldType);
     }
 
     @Override
     protected Object invokeAdditionalField(Class<?> fieldType, String value) throws Exception {
-        return ReflectionUtils.invokeMethod(fieldType.getMethod("parse", String.class), null, value);
+        return fieldType.getMethod("parse", String.class).invoke(null, value);
     }
 }
 ~~~
@@ -75,7 +73,7 @@ byte 배열의 데이터를 Object 내 변환하려는 필드로 지정하기 �
 
 사용법은 아래와 같습니다:
 ~~~java
-public class CustomObject {
+public class TargetObject {
 
     // 데이터의 길이가 14 byte인 문자열 데이터
     @ConvertData(14)
@@ -98,14 +96,16 @@ public class CustomObject {
 ~~~
 
 ### **2. `@Iteration`**
-#### ***`List` 타입을 가진 반복되는 필드 변환을 위한 애노테이션***
-`List` 타입을 가진 반복되는 필드의 경우, **`@Iteration`** 애노테이션으로 지정합니다.  
+#### ***`java.util.List` 타입을 가진 반복되는 필드 변환을 위한 애노테이션***
+`java.util.List` 타입을 가진 반복되는 필드의 경우, **`@Iteration`** 애노테이션으로 지정합니다.  
 반복 횟수는 고정 반복 횟수를 지정하는 **`value`** 속성과, 다른 필드값에 따라 반복되는 **`countField`** 속성으로 지정합니다. **`countField`** 는 필드명을 `String` 으로 지정하며, 해당 필드의 타입은 반드시 `int`/`Integer` 여야 합니다.  
-**`@Iteration`** 애노테이션이 지정한 필드는 `List` 의 제네릭 타입을 반드시 지정해야 합니다. 해당 제네릭 타입의 클래스 내 필드는 반드시 **`@ConvertData`**, **`@Iteration`** 또는 **`@Embeddable`** 애노테이션이 지정되어 있어야 합니다.
+**`@Iteration`** 애노테이션이 지정한 필드는 `java.util.List` 의 제네릭 타입을 반드시 지정해야 합니다. 해당 제네릭 타입의 클래스 내 필드는 반드시 **`@ConvertData`**, **`@Iteration`** 또는 **`@Embeddable`** 애노테이션이 지정되어 있어야 합니다.
 
 사용법은 아래와 같습니다:
 ~~~java
-public class CustomObject {
+import java.util.List;
+
+public class TargetObject {
     // ...
 
     // 반복 횟수가 3으로 고정된 데이터
@@ -130,7 +130,7 @@ VO 내부 필드는 반드시 **`@ConvertData`**, **`@Iteration`** 또는 **`@Em
 
 사용법은 아래와 같습니다:
 ~~~java
-public class CustomObject {
+public class TargetObject {
     // ...
 
     @Embeddable

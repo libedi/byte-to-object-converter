@@ -13,7 +13,7 @@ Supported types are:
 - Primitive Type or Wrapper class such as `int` / `long` / `double` except `void`
 - `java.time` package's date-time class
 - User-defined type (not Value Object)
-- `List`
+- `java.util.List`
 - Custom Value Object
 
 | :exclamation: important |
@@ -36,26 +36,24 @@ ByteToObjectConverter converter = new ByteObjectConverter(dataCharset);
 // Default Constructor : System default character set
 ByteToObjectConverter converter = new ByteObjectConverter();
 ~~~
-Once you've done that, convert the data in the byte array into an `InputStream`. Then, use **`ByteToObjectConverter.convert()`** to transform the data into the desired Object, as shown below.
+Once you've done that, convert the data in the byte array into an `java.io.InputStream`. Then, use **`ByteToObjectConverter.convert()`** to transform the data into the desired Object, as shown below.
 ~~~java
 InputStream inputStream = new ByteArrayInputStream(bytesData);
-CustomObject object = converter.convert(inputStream, CustomObject.class);
+TargetObject object = converter.convert(inputStream, TargetObject.class);
 ~~~
 For converting user-defined types that are not default supported types, you can inherit **`ByteToObjectConverter`** and define the method to convert between the user-defined type.
 ~~~java
-import org.springframework.util.ClassUtils;
-
 public class CustomTypeToObjectConverter extends ByteToObjectConverter {
     // Constructor ...
 
     @Override
     protected boolean hasAdditionalType(Class<?> fieldType) throws Exception {
-        return ClassUtils.isAssignable(CustomType.class, fieldType);
+        return CustomType.class.isAssignableFrom(fieldType);
     }
 
     @Override
     protected Object invokeAdditionalField(Class<?> fieldType, String value) throws Exception {
-        return ReflectionUtils.invokeMethod(fieldType.getMethod("parse", String.class), null, value);
+        return fieldType.getMethod("parse", String.class).invoke(null, value);
     }
 }
 ~~~
@@ -74,7 +72,7 @@ For fields with date-time type conversions, you can specify the data format usin
 
 Usage is as follows:
 ~~~java
-public class CustomObject {
+public class TargetObject {
 
     // String data with a length of 14 bytes
     @ConvertData(14)
@@ -97,14 +95,16 @@ public class CustomObject {
 ~~~
 
 ### **2. `@Iteration`**
-#### ***Annotation for converting repeated fields with `List` type***
-For `List` type fields with repeated elements, use the **`@Iteration`** annotation.  
+#### ***Annotation for converting repeated fields with `java.util.List` type***
+For `java.util.List` type fields with repeated elements, use the **`@Iteration`** annotation.  
 The number of repetitions is determined either by the **`value`** attribute, which sets a fixed number of repetitions, or by the **`countField`** attribute, which repeats based on the value of another field. The **`countField`** specifies the field name as `String`, and the field type must be an integer.  
-Fields marked with the **`@Iteration`** annotation must specify the generic type of `List`. Fields in the class of that generic type must be annotated with **`@ConvertData`**, **`@Iteration`** or **`@Embeddable`**.
+Fields marked with the **`@Iteration`** annotation must specify the generic type of `java.util.List`. Fields in the class of that generic type must be annotated with **`@ConvertData`**, **`@Iteration`** or **`@Embeddable`**.
 
 Usage is as follows:
 ~~~java
-public class CustomObject {
+import java.util.List;
+
+public class TargetObject {
     // ...
 
     // Data with a fixed number of iterations of 3
@@ -129,7 +129,7 @@ Fields within the value object must be annotated with **`@ConvertData`**, **`@It
 
 Usage is as follows:
 ~~~java
-public class CustomObject {
+public class TargetObject {
     // ...
 
     @Embeddable
