@@ -3,6 +3,8 @@ package io.github.libedi.converter;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import io.github.libedi.converter.annotation.ConvertData;
 import io.github.libedi.converter.annotation.Embeddable;
@@ -81,19 +83,30 @@ public class ByteToObjectConverter {
     }
 
     public ByteToObjectConverter(final Charset dataCharset) {
-        conversionHelper = new ConversionHelper(dataCharset, fieldType -> {
+        final Function<Class<?>, Boolean> hasAdditionalTypeFunction = hasAdditionalTypeFunction();
+        final BiFunction<Class<?>, String, Object> invokeAdditionalFieldFunction = invokeAdditionalFieldFunction();
+
+        conversionHelper = new ConversionHelper(dataCharset, hasAdditionalTypeFunction, invokeAdditionalFieldFunction);
+    }
+
+    private Function<Class<?>, Boolean> hasAdditionalTypeFunction() {
+        return fieldType -> {
             try {
                 return hasAdditionalType(fieldType);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        }, (fieldType, value) -> {
+        };
+    }
+
+    private BiFunction<Class<?>, String, Object> invokeAdditionalFieldFunction() {
+        return (fieldType, value) -> {
             try {
                 return invokeAdditionalField(fieldType, value);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-        });
+        };
     }
 
     /**

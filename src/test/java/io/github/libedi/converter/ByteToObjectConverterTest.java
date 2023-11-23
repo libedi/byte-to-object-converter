@@ -157,9 +157,9 @@ class ByteToObjectConverterTest {
     private byte[] convertTestData(final TestObject expected) throws IOException {
         final String dataString1 =
                 StringUtils.rightPad(String.valueOf(expected.getIntValue()), 15)
-                + StringUtils.rightPad(String.valueOf(expected.longValue), 30)
-                + StringUtils.rightPad(String.valueOf(expected.doubleValue), 30)
-                + StringUtils.rightPad(expected.stringValue, 40)
+                        + StringUtils.rightPad(String.valueOf(expected.getLongValue()), 30)
+                        + StringUtils.rightPad(String.valueOf(expected.getDoubleValue()), 30)
+                        + StringUtils.rightPad(expected.getStringValue(), 40)
                 + StringUtils.rightPad(String.valueOf(expected.getMonthValue().getValue()), 2)
                 + StringUtils.rightPad(expected.getDateValue().format(DateTimeFormatter.ofPattern(DATE_FORMAT)), 10)
                 + StringUtils.rightPad(expected.getDateTimeValue().format(DateTimeFormatter.ofPattern(DATETIME_FORMAT)), 19)
@@ -173,7 +173,7 @@ class ByteToObjectConverterTest {
 
         final TestNestedLoop loopValue = expected.getNestedLoopValue();
         final String dataString3 = StringUtils.rightPad(String.valueOf(loopValue.getCount()), 4)
-                + loopValue.list.stream()
+                + loopValue.getList().stream()
                         .map(vo -> StringUtils.rightPad(vo.getVoStringValue(), 100)
                                 + StringUtils.rightPad(String.valueOf(vo.getVoIntValue()), 15))
                         .collect(Collectors.joining());
