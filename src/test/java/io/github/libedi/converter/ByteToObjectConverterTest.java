@@ -26,6 +26,7 @@ import autoparams.customization.Customization;
 import autoparams.lombok.BuilderCustomizer;
 import io.github.libedi.converter.annotation.ConvertData;
 import io.github.libedi.converter.annotation.Embeddable;
+import io.github.libedi.converter.annotation.Ignorable;
 import io.github.libedi.converter.annotation.Iteration;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -60,6 +61,7 @@ class ByteToObjectConverterTest {
                         DateTimeFormatter.ofPattern(DATETIME_FORMAT))); // truncate milliseconds
         ReflectionTestUtils.setField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size());
         ReflectionTestUtils.setField(expected, "voList", expected.getVoList().subList(0, 2));
+        ReflectionTestUtils.setField(expected, "ignorable", null);
 
         final InputStream inputStream = new ByteArrayInputStream(convertTestData(expected));
 
@@ -97,6 +99,7 @@ class ByteToObjectConverterTest {
                         DateTimeFormatter.ofPattern(DATETIME_FORMAT))); // truncate milliseconds
         ReflectionTestUtils.setField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size());
         ReflectionTestUtils.setField(expected, "voList", expected.getVoList().subList(0, 2));
+        ReflectionTestUtils.setField(expected, "ignorable", null);
 
         final byte[] expectedBytes = convertTestData(expected);
 
@@ -142,6 +145,10 @@ class ByteToObjectConverterTest {
 
         @Iteration(2)
         private List<TestVO> voList;
+
+        @Ignorable
+        @ConvertData(10)
+        private String ignorable;
 
     }
 
