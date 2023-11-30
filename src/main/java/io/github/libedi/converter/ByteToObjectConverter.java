@@ -9,6 +9,7 @@ import java.util.function.Function;
 import io.github.libedi.converter.annotation.ConvertData;
 import io.github.libedi.converter.annotation.Embeddable;
 import io.github.libedi.converter.annotation.Iteration;
+import io.github.libedi.converter.exception.ConvertFailException;
 
 /**
  * <p>
@@ -73,6 +74,7 @@ import io.github.libedi.converter.annotation.Iteration;
 public class ByteToObjectConverter {
 
     private final ConversionHelper conversionHelper;
+    private final DeconversionHelper deconversionHelper;
 
     public ByteToObjectConverter() {
         this(Charset.defaultCharset());
@@ -84,29 +86,11 @@ public class ByteToObjectConverter {
 
     public ByteToObjectConverter(final Charset dataCharset) {
         final Function<Class<?>, Boolean> hasAdditionalTypeFunction = hasAdditionalTypeFunction();
-        final BiFunction<Class<?>, String, Object> invokeAdditionalFieldFunction = invokeAdditionalFieldFunction();
 
-        conversionHelper = new ConversionHelper(dataCharset, hasAdditionalTypeFunction, invokeAdditionalFieldFunction);
-    }
-
-    private Function<Class<?>, Boolean> hasAdditionalTypeFunction() {
-        return fieldType -> {
-            try {
-                return hasAdditionalType(fieldType);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        };
-    }
-
-    private BiFunction<Class<?>, String, Object> invokeAdditionalFieldFunction() {
-        return (fieldType, value) -> {
-            try {
-                return invokeAdditionalField(fieldType, value);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        };
+        conversionHelper = new ConversionHelper(dataCharset, hasAdditionalTypeFunction,
+                invokeAdditionalFieldFunction());
+        deconversionHelper = new DeconversionHelper(dataCharset, hasAdditionalTypeFunction,
+                changeAdditionalDataToStringFunction());
     }
 
     /**
@@ -116,6 +100,7 @@ public class ByteToObjectConverter {
      * @param inputStream 데이터 입력 스트림
      * @param type        대상 Object 타입
      * @return
+     * @throws ConvertFailException
      */
     public <T> T convert(final InputStream inputStream, final Class<T> type) {
         return conversionHelper.convert(inputStream, type);
@@ -127,9 +112,21 @@ public class ByteToObjectConverter {
      * @param inputStream
      * @param length
      * @return
+     * @throws ConvertFailException
      */
     public String convertInputStream(final InputStream inputStream, final int length) {
         return conversionHelper.convertInputStream(inputStream, length);
+    }
+
+    /**
+     * Object 를 byte[] 데이터로 역변환
+     *
+     * @param targetObject
+     * @param alignment
+     * @return
+     */
+    public byte[] deconvert(final Object targetObject, final DataAlignment alignment) {
+        return deconversionHelper.deconvert(targetObject, alignment);
     }
 
     /**
@@ -153,6 +150,40 @@ public class ByteToObjectConverter {
      */
     protected Object invokeAdditionalField(final Class<?> fieldType, final String value) throws Exception {
         return null;
+    }
+
+    protected String changeAdditionalDataToString(final Object fieldData) throws Exception {
+        return null;
+    }
+
+    private Function<Class<?>, Boolean> hasAdditionalTypeFunction() {
+        return fieldType -> {
+            try {
+                return hasAdditionalType(fieldType);
+            } catch (final Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
+    }
+
+    private BiFunction<Class<?>, String, Object> invokeAdditionalFieldFunction() {
+        return (fieldType, value) -> {
+            try {
+                return invokeAdditionalField(fieldType, value);
+            } catch (final Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
+    }
+
+    private Function<Object, String> changeAdditionalDataToStringFunction() {
+        return fieldData -> {
+            try {
+                return changeAdditionalDataToString(fieldData);
+            } catch (final Exception e) {
+                throw new RuntimeException(e);
+            }
+        };
     }
 
 }

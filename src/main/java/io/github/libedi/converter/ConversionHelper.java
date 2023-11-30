@@ -2,20 +2,10 @@ package io.github.libedi.converter;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
-import java.time.LocalTime;
 import java.time.Month;
-import java.time.OffsetDateTime;
-import java.time.OffsetTime;
-import java.time.Year;
-import java.time.YearMonth;
-import java.time.ZonedDateTime;
-import java.time.chrono.ChronoLocalDate;
-import java.time.chrono.ChronoLocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.List;
@@ -32,6 +22,7 @@ import org.apache.commons.lang3.reflect.MethodUtils;
 import io.github.libedi.converter.annotation.ConvertData;
 import io.github.libedi.converter.annotation.Embeddable;
 import io.github.libedi.converter.annotation.Iteration;
+import io.github.libedi.converter.exception.ConvertFailException;
 
 /**
  * ConversionHelper
@@ -39,7 +30,7 @@ import io.github.libedi.converter.annotation.Iteration;
  * @author "Sangjun,Park"
  *
  */
-class ConversionHelper {
+class ConversionHelper extends AbstractCommonHelper {
 
     private final Charset dataCharset;
 
@@ -60,6 +51,7 @@ class ConversionHelper {
      * @param inputStream 데이터 입력 스트림
      * @param type        대상 Object 타입
      * @return
+     * @throws ConvertFailException
      */
     <T> T convert(final InputStream inputStream, final Class<T> type) {
         validateArguments(inputStream, type);
@@ -77,7 +69,7 @@ class ConversionHelper {
      */
     private <T> void validateArguments(final InputStream inputStream, final Class<T> type) {
         if (inputStream == null || type == null) {
-            throw new IllegalArgumentException("Neither inputStream nor type must be null.");
+            throw new ConvertFailException("Neither inputStream nor type must be null.");
         }
     }
 
@@ -92,23 +84,8 @@ class ConversionHelper {
         try {
             return makeAccessible(type.getDeclaredConstructor()).newInstance();
         } catch (final ReflectiveOperationException e) {
-            throw new RuntimeException(e);
+            throw new ConvertFailException(e);
         }
-    }
-
-    /**
-     * 주어진 생성자를 접근가능하게 변경
-     * 
-     * @param <T>
-     * @param constructor
-     * @return
-     */
-    private <T> Constructor<T> makeAccessible(final Constructor<T> constructor) {
-        if ((!Modifier.isPublic(constructor.getModifiers())
-                || !Modifier.isPublic(constructor.getDeclaringClass().getModifiers())) && !constructor.isAccessible()) {
-            constructor.setAccessible(true);
-        }
-        return constructor;
     }
 
     /**
@@ -142,19 +119,8 @@ class ConversionHelper {
             }
             FieldUtils.writeField(field, targetObject, extractData(field, inputStream, targetObject, type), true);
         } catch (IOException | ReflectiveOperationException e) {
-            throw new RuntimeException(e);
+            throw new ConvertFailException(e);
         }
-    }
-
-    /**
-     * 변환 대상 필드 여부
-     *
-     * @param field
-     * @return
-     */
-    private boolean isTargetField(final Field field) {
-        return field.isAnnotationPresent(ConvertData.class) || field.isAnnotationPresent(Iteration.class)
-                || field.isAnnotationPresent(Embeddable.class);
     }
 
     /**
@@ -167,11 +133,15 @@ class ConversionHelper {
      * @param type
      * @return
      * @throws IOException
-     * @throws ReflectiveOperationException
+     * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     * @throws NoSuchMethodException
+     * @throws NumberFormatException
      */
     private <T> Object extractData(final Field field, final InputStream inputStream, final T targetObject,
-            final Class<T> type) throws IOException, ReflectiveOperationException {
-        if (field.isAnnotationPresent(Iteration.class) || ClassUtils.isAssignable(field.getType(), List.class)) {
+            final Class<T> type) throws IllegalAccessException, IOException, NumberFormatException,
+            NoSuchMethodException, InvocationTargetException {
+        if (field.isAnnotationPresent(Iteration.class) && ClassUtils.isAssignable(List.class, field.getType())) {
             return inputStream.available() == 0 ? Collections.emptyList()
                     : extractIteratedData(field, inputStream, targetObject, type);
         }
@@ -194,39 +164,10 @@ class ConversionHelper {
      */
     private <T> List<?> extractIteratedData(final Field field, final InputStream inputStream, final T targetObject,
             final Class<T> type) throws IllegalAccessException {
-        final Iteration iteration = field.getAnnotation(Iteration.class);
         final Class<?> genericType = getGenericType(field);
-        return IntStream.range(0, getCount(targetObject, type, iteration))
-                .mapToObj(i -> convert(inputStream, genericType)).collect(Collectors.toList());
-    }
-
-    /**
-     * 제네릭 타입 조회
-     *
-     * @param field
-     * @return
-     */
-    private Class<?> getGenericType(final Field field) {
-        return (Class<?>) ((ParameterizedType) field.getGenericType()).getActualTypeArguments()[0];
-    }
-
-    /**
-     * 반복 횟수
-     *
-     * @param <T>
-     * @param targetObject
-     * @param type
-     * @param iteration
-     * @return
-     * @throws IllegalAccessException
-     */
-    private <T> int getCount(final T targetObject, final Class<T> type, final Iteration iteration)
-            throws IllegalAccessException {
-        final int count = iteration.value();
-        if (count > 0) {
-            return count;
-        }
-        return (int) FieldUtils.readField(FieldUtils.getField(type, iteration.countField(), true), targetObject);
+        return IntStream.range(0, getCount(targetObject, type, field.getAnnotation(Iteration.class)))
+                .mapToObj(i -> convert(inputStream, genericType))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -275,7 +216,7 @@ class ConversionHelper {
         try {
             return readInputStream(inputStream, inputStream.available());
         } catch (final IOException e) {
-            throw new RuntimeException(e);
+            throw new ConvertFailException(e);
         }
     }
 
@@ -288,14 +229,14 @@ class ConversionHelper {
      */
     private byte[] readInputStream(final InputStream inputStream, final int length) {
         if (length < 0) {
-            throw new IllegalArgumentException("length must not be negative.");
+            throw new ConvertFailException("ConvertData#length() value must not be negative.");
         }
         try {
             final byte[] buf = new byte[length];
             inputStream.read(buf);
             return buf;
         } catch (final IOException e) {
-            throw new RuntimeException(e);
+            throw new ConvertFailException(e);
         }
     }
 
@@ -305,11 +246,13 @@ class ConversionHelper {
      * @param field
      * @param bytes
      * @return
+     * @throws InvocationTargetException
+     * @throws IllegalAccessException
      * @throws NoSuchMethodException
-     * @throws ReflectiveOperationException
+     * @throws NumberFormatException
      */
     private Object invokeSetValueByFieldType(final Field field, final byte[] bytes)
-            throws NoSuchMethodException, ReflectiveOperationException {
+            throws NumberFormatException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         final Class<?> fieldType = field.getType();
         if (ClassUtils.isAssignable(fieldType, byte[].class)) {
             return bytes;
@@ -335,28 +278,11 @@ class ConversionHelper {
         if (isJavaTimePackageClass(fieldType)) {
             final String format = field.getAnnotation(ConvertData.class).format();
             if (StringUtils.isBlank(format)) {
-                throw new IllegalArgumentException("Date format must not be empty.");
+                throw new ConvertFailException("Date format must not be empty.");
             }
             return MethodUtils.invokeStaticMethod(fieldType, "parse", value, DateTimeFormatter.ofPattern(format));
         }
         return null;
-    }
-
-    /**
-     * java.time 패키지 클래스 여부
-     *
-     * @param fieldType
-     * @return
-     */
-    private boolean isJavaTimePackageClass(final Class<?> fieldType) {
-        return ClassUtils.isAssignable(fieldType, ChronoLocalDate.class)
-                || ClassUtils.isAssignable(fieldType, ChronoLocalDateTime.class)
-                || ClassUtils.isAssignable(fieldType, LocalTime.class)
-                || ClassUtils.isAssignable(fieldType, OffsetDateTime.class)
-                || ClassUtils.isAssignable(fieldType, OffsetTime.class)
-                || ClassUtils.isAssignable(fieldType, ZonedDateTime.class)
-                || ClassUtils.isAssignable(fieldType, Year.class)
-                || ClassUtils.isAssignable(fieldType, YearMonth.class);
     }
 
     /**
@@ -365,9 +291,14 @@ class ConversionHelper {
      * @param inputStream
      * @param length
      * @return
+     * @throws ConvertFailException
      */
     String convertInputStream(final InputStream inputStream, final int length) {
-        return StringUtils.trim(new String(readInputStream(inputStream, length), dataCharset));
+        try {
+            return StringUtils.trim(new String(readInputStream(inputStream, length), dataCharset));
+        } catch (final RuntimeException e) {
+            throw new ConvertFailException(e);
+        }
     }
 
 }

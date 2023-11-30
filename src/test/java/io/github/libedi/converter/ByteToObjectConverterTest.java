@@ -57,7 +57,7 @@ class ByteToObjectConverterTest {
         // given
         ReflectionTestUtils.setField(expected, "dateTimeValue",
                 LocalDateTime.parse(expected.getDateTimeValue().format(DateTimeFormatter.ofPattern(DATETIME_FORMAT)),
-                        DateTimeFormatter.ofPattern(DATETIME_FORMAT)));
+                        DateTimeFormatter.ofPattern(DATETIME_FORMAT))); // truncate milliseconds
         ReflectionTestUtils.setField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size());
         ReflectionTestUtils.setField(expected, "voList", expected.getVoList().subList(0, 2));
 
@@ -84,6 +84,27 @@ class ByteToObjectConverterTest {
         // then
         assertThat(actual).isNotNull();
         assertThat(actual.getVoList()).isNotNull().isEmpty();
+    }
+
+    @DisplayName("Object를 byte[]로 변환")
+    @ParameterizedTest
+    @AutoSource
+    @Customization(BuilderCustomizer.class)
+    void deconvert(final TestObject expected) throws Exception {
+        // given
+        ReflectionTestUtils.setField(expected, "dateTimeValue",
+                LocalDateTime.parse(expected.getDateTimeValue().format(DateTimeFormatter.ofPattern(DATETIME_FORMAT)),
+                        DateTimeFormatter.ofPattern(DATETIME_FORMAT))); // truncate milliseconds
+        ReflectionTestUtils.setField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size());
+        ReflectionTestUtils.setField(expected, "voList", expected.getVoList().subList(0, 2));
+
+        final byte[] expectedBytes = convertTestData(expected);
+
+        // when
+        final byte[] actual = converter.deconvert(expected, DataAlignment.LEFT);
+
+        // then
+        assertThat(actual).isEqualTo(expectedBytes);
     }
 
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -191,6 +212,10 @@ class ByteToObjectConverterTest {
         baos.write(dataString3.getBytes(DATA_CHARSET));
         baos.write(dataString4.getBytes(DATA_CHARSET));
         return baos.toByteArray();
+    }
+
+    public static void main(final String[] args) {
+        System.out.println(Integer.valueOf("-102"));
     }
 
 }
