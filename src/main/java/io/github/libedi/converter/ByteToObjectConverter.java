@@ -148,7 +148,7 @@ public class ByteToObjectConverter {
     }
 
     /**
-     * 사용자 정의 필드 타입 값 설정
+     * <code>byte[]</code>를 Object로 변환하기 위한 사용자 정의 필드 타입 값 설정
      *
      * @param fieldType
      * @param value
@@ -160,7 +160,7 @@ public class ByteToObjectConverter {
     }
 
     /**
-     * 사용자 정의 필드 타입 값 설정
+     * Object를 <code>byte[]</code>로 변환하기 위한 사용자 정의 필드 타입 값 설정
      *
      * @param fieldData
      * @return

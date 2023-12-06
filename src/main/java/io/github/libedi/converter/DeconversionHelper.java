@@ -151,7 +151,8 @@ class DeconversionHelper extends AbstractCommonHelper {
     }
 
     /**
-     * 
+     * 필드 값 일기
+     *
      * @param field
      * @param targetObject
      * @return
@@ -161,15 +162,41 @@ class DeconversionHelper extends AbstractCommonHelper {
         return FieldUtils.readField(field, targetObject, true);
     }
 
+    /**
+     * {@link Ignorable @Ignorable} 적용 여부
+     *
+     * @param field
+     * @param fieldValue
+     * @return
+     */
     private boolean isIgnorable(final Field field, final Object fieldValue) {
         return fieldValue == null && field.isAnnotationPresent(Ignorable.class);
     }
 
+    /**
+     * {@link List} 크기 반환
+     *
+     * @param list
+     * @return
+     * @throws NoSuchMethodException
+     * @throws IllegalAccessException
+     * @throws InvocationTargetException
+     */
     private int getListSize(final Object list)
             throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
         return list == null ? 0 : (int) MethodUtils.invokeMethod(list, true, "size");
     }
 
+    /**
+     * {@link List}의 요소를 <code>byte[]</code>로 변환
+     *
+     * @param targetObject
+     * @param alignment
+     * @param size
+     * @param elementConstructor
+     * @param i
+     * @return
+     */
     private byte[] deconvertElement(final Object targetObject, final DataAlignment alignment, final int size,
             final Constructor<?> elementConstructor, final int i) {
         try {
@@ -182,7 +209,8 @@ class DeconversionHelper extends AbstractCommonHelper {
     }
 
     /**
-     * 
+     * Value Object 데이터 추출
+     *
      * @param field
      * @param fieldObject
      * @param alignment
@@ -227,7 +255,8 @@ class DeconversionHelper extends AbstractCommonHelper {
     }
 
     /**
-     * 
+     * 필드 데이터를 {@link String}으로 변환
+     *
      * @param field
      * @param value
      * @return
@@ -262,7 +291,8 @@ class DeconversionHelper extends AbstractCommonHelper {
     }
 
     /**
-     * 
+     * 패딩 크기 반환
+     *
      * @param field
      * @param targetObject
      * @return
