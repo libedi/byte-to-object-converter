@@ -8,15 +8,16 @@ import java.util.function.Function;
 
 import io.github.libedi.converter.annotation.ConvertData;
 import io.github.libedi.converter.annotation.Embeddable;
+import io.github.libedi.converter.annotation.Ignorable;
 import io.github.libedi.converter.annotation.Iteration;
 import io.github.libedi.converter.exception.ConvertFailException;
 
 /**
  * <p>
- * byte의 데이터를 Object로 쉽게 변환해줍니다.
+ * byte 데이터와 Object 간의 변환을 쉽게 해줍니다.
  * </p>
  * <p>
- * 기존 레거시 코드에서 byte 전문을 Object로 변환시 데이터 파싱에 많은 boilerplate 코드가 필요합니다.
+ * 기존 레거시 코드에서 byte 전문과 Object 간의 변환시 데이터 파싱에 많은 boilerplate 코드가 필요합니다.
  * {@link ByteToObjectConverter}는 이러한 번거로운 작업을 줄이고, 개발자가 비즈니스 도메인의 설게에 집중할 수 있게
  * 도와줍니다.
  * </p>
@@ -64,12 +65,17 @@ import io.github.libedi.converter.exception.ConvertFailException;
  * {@link ConvertData @ConvertData}, {@link Iteration @Iteration} 또는
  * {@link Embeddable @Embeddable} 애노테이션이 지정되어 있어야 합니다.
  * </p>
+ * <p>
+ * {@link Ignorable @Ignorable} 은 Object를 <code>byte[]</code>로 변환시 사용되며, 해당
+ * 애노테이션이 지정된 필드는 필드의 값이 null인 경우, 길이가 지정되어 있어도 해당 필드의 변환을 무시합니다.
+ * </p>
  * 
  * @author "Sangjun, Park"
  * 
  * @see ConvertData
  * @see Iteration
  * @see Embeddable
+ * @see Ignorable
  */
 public class ByteToObjectConverter {
 
@@ -124,6 +130,7 @@ public class ByteToObjectConverter {
      * @param targetObject
      * @param alignment
      * @return
+     * @throws ConvertFailException
      */
     public byte[] deconvert(final Object targetObject, final DataAlignment alignment) {
         return deconversionHelper.deconvert(targetObject, alignment);
@@ -152,36 +159,58 @@ public class ByteToObjectConverter {
         return null;
     }
 
+    /**
+     * 사용자 정의 필드 타입 값 설정
+     *
+     * @param fieldData
+     * @return
+     * @throws Exception
+     */
     protected String changeAdditionalDataToString(final Object fieldData) throws Exception {
         return null;
     }
 
+    /**
+     * 사용자 정의 필드 타입 여부 함수
+     *
+     * @return
+     */
     private Function<Class<?>, Boolean> hasAdditionalTypeFunction() {
         return fieldType -> {
             try {
                 return hasAdditionalType(fieldType);
             } catch (final Exception e) {
-                throw new RuntimeException(e);
+                throw new ConvertFailException(e);
             }
         };
     }
 
+    /**
+     * 사용자 정의 필드 타입 값 설정 함수
+     *
+     * @return
+     */
     private BiFunction<Class<?>, String, Object> invokeAdditionalFieldFunction() {
         return (fieldType, value) -> {
             try {
                 return invokeAdditionalField(fieldType, value);
             } catch (final Exception e) {
-                throw new RuntimeException(e);
+                throw new ConvertFailException(e);
             }
         };
     }
 
+    /**
+     * 사용자 정의 필드 타입 값 설정 함수
+     * 
+     * @return
+     */
     private Function<Object, String> changeAdditionalDataToStringFunction() {
         return fieldData -> {
             try {
                 return changeAdditionalDataToString(fieldData);
             } catch (final Exception e) {
-                throw new RuntimeException(e);
+                throw new ConvertFailException(e);
             }
         };
     }
