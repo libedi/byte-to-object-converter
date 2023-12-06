@@ -38,7 +38,7 @@ public enum DataAlignment {
      * @return
      */
     public String applyPad(final String str, final int size) {
-        return size == -1 ? str : stringPaddingFunction.apply(str, size);
+        return isNoPadding(size) ? str : stringPaddingFunction.apply(str, size);
     }
 
     /**
@@ -50,9 +50,19 @@ public enum DataAlignment {
      * @return
      */
     public byte[] applyPad(final byte[] bytes, final int size, final Charset dataCharset) {
-        return size == -1 ? bytes
+        return isNoPadding(size) ? bytes
                 : bytesPaddingFunction.apply(bytes,
                         StringUtils.rightPad(StringUtils.EMPTY, size - bytes.length).getBytes(dataCharset));
+    }
+
+    /**
+     * 패딩 미적용 여부
+     *
+     * @param size
+     * @return
+     */
+    private boolean isNoPadding(final int size) {
+        return size == -1;
     }
 
 }
