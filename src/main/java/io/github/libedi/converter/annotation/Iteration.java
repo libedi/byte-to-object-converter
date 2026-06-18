@@ -11,34 +11,80 @@ import io.github.libedi.converter.ByteToObjectConverter;
 
 /**
  * <p>
- * <code>List</code> 타입을 가진 반복되는 필드 변환을 위한 애노테이션. 반복 횟수는 고정 반복 횟수를 지정하는
- * {@link #value} 속성과 다른 필드값에 따라 반복되는 {@link #countField} 속성으로 지정합니다.
- * {@link #countField} 는 필드명을 <code>String</code>으로 지정하며, 해당 필드의 타입은 반드시
- * <code>int</code>여야 합니다.<br/>
- * {@link Iteration @Iteration} 애노테이션이 지정한 필드는 반드시 <code>List</code>의 제네릭 타입을
- * 지정해야 합니다. 해당 제네릭 타입의 클래스 필드는 반드시 {@link ConvertData @ConvertData},
- * {@link Iteration @Iteration} 또는 {@link Embeddable @Embeddable} 애노테이션이 지정되어
- * 있어야 합니다.
+ * {@link java.util.List} 타입의 반복되는 필드를 변환하기 위한 annotation입니다.
  * </p>
  * <p>
- * 사용법은 아래와 같습니다:
+ * byte 데이터에서 동일한 구조의 여러 항목을 읽어 List로 변환할 때 사용합니다.
+ * 반복 횟수는 고정 값 또는 다른 필드의 값으로 동적으로 지정할 수 있습니다.
+ * </p>
+ * <p>
+ * <strong>필수 조건:</strong>
+ * </p>
+ * <ul>
+ * <li>필드는 {@code List<T>} 형태여야 하며, 제네릭 타입 {@code T}가 명시되어야 합니다</li>
+ * <li>List의 요소 타입 {@code T}는 반드시:
+ *   <ul>
+ *     <li>기본 생성자(매개변수 없는 생성자)를 가져야 합니다</li>
+ *     <li>내부 필드는 {@link ConvertData @ConvertData},
+ *         {@link Iteration @Iteration}, 또는 {@link Embeddable @Embeddable}
+ *         annotation을 가져야 합니다</li>
+ *   </ul>
+ * </li>
+ * <li>{@link #value()}와 {@link #countField()} 중 정확히 하나만 지정해야 합니다
+ *   (둘 다 지정하면 value가 우선됨)</li>
+ * </ul>
+ * <p>
+ * <strong>반복 횟수 지정:</strong>
+ * </p>
+ * <ul>
+ * <li>{@code value > 0} - 고정 반복 횟수. 예: {@code @Iteration(5)}는 5개 항목 읽음</li>
+ * <li>{@code value == 0} (기본값) - {@link #countField()}로 동적 반복 횟수 지정</li>
+ * <li>{@link #countField()} 지정 - 해당 int 필드의 값만큼 반복합니다</li>
+ * </ul>
+ * <p>
+ * <strong>사용 예:</strong>
  * </p>
  *
  * <pre>
- * // 반복 횟수가 3으로 고정된 데이터
+ * // 고정 반복 - 정확히 3개의 Item 읽음
  * &#64;Iteration(3)
- * List&lt;VO&gt; fixedIterationList;
- * 
+ * List&lt;Item&gt; fixedItems;
+ *
+ * // 동적 반복 - itemCount 필드의 값만큼 Item 읽음
  * &#64;ConvertData(4)
- * int count;
- * 
- * // count 필드의 값만큼 반복하는 데이터
- * &#64;Iteration(countField = "count")
- * List&lt;VO&gt; fieldIterationList;
+ * int itemCount;
+ *
+ * &#64;Iteration(countField = "itemCount")
+ * List&lt;Item&gt; dynamicItems;
+ *
+ * // Item 클래스 (리스트 요소 타입)
+ * public class Item {
+ *     public Item() { }  // 필수: 기본 생성자
+ *
+ *     &#64;ConvertData(10)
+ *     String name;
+ *
+ *     &#64;ConvertData(4)
+ *     int price;
+ * }
  * </pre>
+ * <p>
+ * <strong>역변환 시 주의사항:</strong>
+ * </p>
+ * <p>
+ * Object를 byte[]로 역변환할 때:
+ * </p>
+ * <ul>
+ * <li>value가 0이면 countField로 지정된 필드의 현재 값을 반복 횟수로 사용합니다</li>
+ * <li>List의 크기가 지정된 반복 횟수보다 작으면, 부족한 부분은 요소 타입의 기본 생성자로
+ *     생성된 인스턴스로 채웁니다</li>
+ * <li>List의 크기가 지정된 반복 횟수보다 크면, 초과분은 무시됩니다</li>
+ * </ul>
  *
  * @author "Sangjun,Park"
  * @see ByteToObjectConverter
+ * @see ConvertData
+ * @see Embeddable
  */
 @Documented
 @Retention(RUNTIME)
@@ -46,16 +92,42 @@ import io.github.libedi.converter.ByteToObjectConverter;
 public @interface Iteration {
 
     /**
-     * 고정 횟수 반복값 설정
+     * <p>
+     * 고정 반복 횟수를 지정합니다.
+     * </p>
+     * <p>
+     * <ul>
+     * <li>{@code > 0} - 고정 반복 횟수. 예: 5이면 5개의 항목을 읽음</li>
+     * <li>{@code == 0} (기본값) - {@link #countField()}로 동적 반복 횟수 지정</li>
+     * </ul>
+     * </p>
+     * <p>
+     * value와 countField가 모두 지정된 경우 value가 우선됩니다.
+     * </p>
      *
-     * @return
+     * @return 고정 반복 횟수 (기본값: 0)
+     * @see #countField()
      */
     int value() default 0;
 
     /**
-     * 반복값 필드 지정
+     * <p>
+     * 반복 횟수가 정의된 다른 필드의 이름을 지정합니다.
+     * </p>
+     * <p>
+     * {@link #value()}가 0일 때 사용되며, 지정된 필드는 반드시 {@code int} 타입이어야 합니다.
+     * 이 필드는 Object 내에서 {@link ConvertData @ConvertData}로 마킹되어 있어야 합니다.
+     * </p>
+     * <p>
+     * 예: {@code countField = "itemCount"}는 클래스의 {@code int itemCount} 필드의
+     * 값만큼 현재 List 필드를 반복하여 변환합니다.
+     * </p>
+     * <p>
+     * 고정 반복이 필요하면 빈 문자열("")을 유지하고, {@link #value()}에 고정 횟수를 지정하세요.
+     * </p>
      *
-     * @return
+     * @return 카운트 필드명 (기본값: "")
+     * @see #value()
      */
     String countField() default "";
 }

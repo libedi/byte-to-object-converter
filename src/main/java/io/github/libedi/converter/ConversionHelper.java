@@ -25,10 +25,39 @@ import io.github.libedi.converter.annotation.Iteration;
 import io.github.libedi.converter.exception.ConvertFailException;
 
 /**
- * ConversionHelper
+ * <p>
+ * byte[] 데이터를 Object로 변환하기 위한 헬퍼 클래스입니다.
+ * </p>
+ * <p>
+ * 이 클래스는 {@link ByteToObjectConverter}에 의해 사용되며, byte 입력 스트림을 읽어서
+ * {@link ConvertData @ConvertData}, {@link Iteration @Iteration}, {@link Embeddable @Embeddable}
+ * 애노테이션으로 마킹된 필드에 데이터를 변환하여 할당합니다.
+ * </p>
+ * <p>
+ * 주요 기능:
+ * </p>
+ * <ul>
+ * <li>byte[] 데이터의 읽기 및 필드 타입에 따른 변환</li>
+ * <li>고정 길이 및 동적 길이 데이터 처리</li>
+ * <li>반복되는 데이터 (List) 변환</li>
+ * <li>중첩된 Value Object (Embeddable) 변환</li>
+ * <li>다양한 타입 지원 (String, 숫자, Enum, 날짜-시간, 사용자 정의 타입)</li>
+ * </ul>
+ * <p>
+ * 변환 과정:
+ * </p>
+ * <ol>
+ * <li>대상 Object의 기본 생성자를 이용해 인스턴스 생성</li>
+ * <li>클래스에 정의된 필드 순서에 따라 스트림에서 데이터 읽기</li>
+ * <li>각 필드의 annotation 정보를 기반으로 데이터 타입 변환</li>
+ * <li>Charset을 사용하여 byte 데이터를 문자열로 변환 후 필요한 타입으로 파싱</li>
+ * </ol>
  *
  * @author "Sangjun,Park"
- *
+ * @see ByteToObjectConverter
+ * @see ConvertData
+ * @see Iteration
+ * @see Embeddable
  */
 class ConversionHelper extends AbstractCommonHelper {
 

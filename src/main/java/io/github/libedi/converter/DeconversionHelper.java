@@ -26,10 +26,49 @@ import io.github.libedi.converter.annotation.Iteration;
 import io.github.libedi.converter.exception.ConvertFailException;
 
 /**
- * DeconversionHelper
+ * <p>
+ * Object를 byte[] 데이터로 역변환하기 위한 헬퍼 클래스입니다.
+ * </p>
+ * <p>
+ * 이 클래스는 {@link ByteToObjectConverter}에 의해 사용되며,
+ * {@link ConvertData @ConvertData}, {@link Iteration @Iteration}, {@link Embeddable @Embeddable},
+ * {@link Ignorable @Ignorable} 애노테이션으로 마킹된 필드를 byte[]로 변환합니다.
+ * </p>
+ * <p>
+ * 주요 기능:
+ * </p>
+ * <ul>
+ * <li>다양한 타입의 필드 값을 byte[]로 변환</li>
+ * <li>DataAlignment를 사용한 데이터 정렬 (LEFT/RIGHT 패딩)</li>
+ * <li>List 필드의 각 요소 변환 및 연결</li>
+ * <li>중첩된 Value Object (Embeddable) 변환</li>
+ * <li>Ignorable 필드 처리 (null인 경우 스킵)</li>
+ * <li>String, 숫자, Enum, 날짜-시간, 사용자 정의 타입 지원</li>
+ * </ul>
+ * <p>
+ * 역변환 과정:
+ * </p>
+ * <ol>
+ * <li>대상 Object의 모든 annotation이 있는 필드를 순서대로 처리</li>
+ * <li>각 필드의 annotation 정보를 기반으로 데이터를 문자열 또는 byte[]로 변환</li>
+ * <li>지정된 length만큼 패딩 적용 (DataAlignment에 따라 LEFT 또는 RIGHT)</li>
+ * <li>모든 필드의 byte[]을 순서대로 연결하여 최종 결과 생성</li>
+ * </ol>
+ * <p>
+ * DataAlignment:
+ * </p>
+ * <ul>
+ * <li>{@link DataAlignment#LEFT} - 왼쪽 정렬 ("data____") - 뒤에 패딩</li>
+ * <li>{@link DataAlignment#RIGHT} - 오른쪽 정렬 ("____data") - 앞에 패딩</li>
+ * </ul>
  *
  * @author "Sangjun,Park"
- *
+ * @see ByteToObjectConverter
+ * @see ConvertData
+ * @see Iteration
+ * @see Embeddable
+ * @see Ignorable
+ * @see DataAlignment
  */
 class DeconversionHelper extends AbstractCommonHelper {
 
@@ -65,7 +104,7 @@ class DeconversionHelper extends AbstractCommonHelper {
      */
     private void validateArguments(final Object targetObject) {
         if (targetObject == null) {
-            throw new ConvertFailException("targetObject must be null.");
+            throw new ConvertFailException("targetObject must not be null.");
         }
     }
 
