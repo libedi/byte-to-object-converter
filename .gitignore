@@ -225,7 +225,8 @@ dependency-reduced-pom.xml
 buildNumber.properties
 .mvn/timing.properties
 # https://github.com/takari/maven-wrapper#usage-without-binary-jar
-.mvn/wrapper/maven-wrapper.jar
+# Track Maven Wrapper JAR for dependency-free builds
+!.mvn/wrapper/maven-wrapper.jar
 
 ### Maven Patch ###
 # Eclipse m2e generated files
