@@ -34,4 +34,4 @@ if not exist "%MAVEN_WRAPPER_PROPERTIES%" (
 )
 
 :run
-java -cp "%MAVEN_WRAPPER_JAR%" org.apache.maven.wrapper.MavenWrapperMain %*
+java -cp "%MAVEN_WRAPPER_JAR%" org.apache.maven.wrapper.MavenWrapperMain "-Dmaven.multiModuleProjectDirectory=%~dp0." %*
