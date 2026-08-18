@@ -258,4 +258,7 @@ gradle-app.setting
 # Eclipse Core
 # JDT-specific (Eclipse Java Development Tools)
 
+### Git Worktrees ###
+.claude/worktrees/
+
 # End of https://www.toptal.com/developers/gitignore/api/java,eclipse,intellij,maven,git,gradle
