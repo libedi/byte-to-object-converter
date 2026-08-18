@@ -1,56 +1,57 @@
 ---
 name: git-commit-push
-description: Commit the current changes, rebase the branch onto main, and push. Use when the user asks to commit and push, or wants their branch rebased onto main before pushing.
+description: 현재 변경사항을 커밋하고, main 브랜치 위로 rebase한 뒤 push한다. 사용자가 "커밋하고 푸시해줘"라고 하거나, main 위로 rebase 후 push하길 원할 때 사용한다.
 ---
 
-# Git Commit & Push (rebase onto main)
+# Git 커밋 & Push (main 위로 rebase)
 
-Commits pending changes, rebases the current branch onto the latest `main`, then pushes.
+대기 중인 변경사항을 커밋하고, 최신 `main`으로 rebase한 다음 push한다.
 
-## Steps
+## 단계
 
-1. **Inspect state** (run in parallel):
-   - `git status` — see staged/unstaged/untracked files
-   - `git diff` (and `git diff --staged`) — see what changed
-   - `git log --oneline -10` — match this repo's commit message style
-   - `git branch --show-current` — confirm we're not on `main` itself; if we are, stop and tell the user (never commit/rebase/push directly on `main`)
+1. **현재 상태 파악** (병렬로 실행):
+   - `git status` — staged/unstaged/untracked 파일 확인
+   - `git diff` (및 `git diff --staged`) — 변경 내용 확인
+   - `git log --oneline -10` — 이 저장소의 기존 커밋 메시지 스타일 파악
+   - `git branch --show-current` — 현재 `main` 브랜치가 아닌지 확인. `main`이면 중단하고 사용자에게 알림 (`main`에서 직접 커밋/rebase/push 금지)
 
-2. **Stage and commit**:
-   - Stage relevant files explicitly by name (never `git add -A` / `git add .`) — review `git status` to avoid staging secrets or unrelated files.
-   - Write a concise commit message (why over what), matching the repo's existing style, passed via heredoc:
+2. **staging 및 커밋**:
+   - 관련 파일을 이름으로 명시해서 stage (`git add -A`, `git add .` 금지) — `git status`를 검토해서 비밀정보나 무관한 파일이 섞이지 않게 함
+   - 변경 성격이 서로 다르면(예: 소스 리팩토링 / 빌드 설정 / 신규 도구 파일) 이 저장소의 기존 방식대로 커밋을 나눠서 작성
+   - 커밋 메시지는 "무엇을"보다 "왜"에 초점을 맞추고, 이 저장소의 기존 스타일에 맞춰 heredoc으로 작성:
      ```bash
      git commit -m "$(cat <<'EOF'
-     <summary line>
+     <요약 한 줄>
 
      Co-Authored-By: Claude Sonnet 5 <noreply@anthropic.com>
      EOF
      )"
      ```
-   - If there is nothing to commit (clean tree), skip committing and proceed to rebase/push only if the branch is already ahead of its remote tracking branch.
+   - 커밋할 변경사항이 없다면(clean tree) 커밋은 건너뛰고, 현재 브랜치가 원격 추적 브랜치보다 앞서 있는 경우에만 rebase/push로 진행
 
-3. **Update main and rebase**:
+3. **main 최신화 및 rebase**:
    - `git fetch origin main`
    - `git rebase origin/main`
-   - If conflicts occur: stop, show the conflicting files to the user, and let them resolve (or ask how to proceed). Do **not** run `git rebase --abort` or force through conflicts without the user's direction.
+   - 충돌 발생 시: 중단하고 충돌 파일을 사용자에게 보여준 뒤 직접 해결하게 하거나 어떻게 진행할지 물어봄. 사용자 지시 없이 `git rebase --abort`를 실행하거나 충돌을 임의로 밀어붙이지 않음
 
-4. **Push**:
-   - Try a normal push first: `git push`
-   - If it's rejected as non-fast-forward (expected after a rebase that moved commits) and there is an upstream tracking branch, push with `git push --force-with-lease`. This is safe by design — it only overwrites the remote branch if it still matches what we last fetched, so it fails instead of clobbering someone else's work if the remote changed since.
-   - If `--force-with-lease` itself is rejected (someone else pushed to this branch in the meantime), stop and report this to the user rather than retrying with plain `--force`.
-   - If there's no upstream tracking branch yet, push with `git push -u origin <branch>`.
+4. **push**:
+   - 먼저 일반 push 시도: `git push`
+   - non-fast-forward로 거부되고(rebase로 커밋이 재배치되어 일어날 수 있는 정상적인 상황) 원격 추적 브랜치가 있다면 `git push --force-with-lease`로 push. 이 방식은 마지막으로 fetch한 상태와 원격이 여전히 일치할 때만 덮어쓰기 때문에 안전함 — 그 사이 원격이 변경됐다면 덮어쓰는 대신 실패함
+   - `--force-with-lease`마저 거부되면(그 사이 다른 사람이 이 브랜치에 push함) 일반 `--force`로 재시도하지 말고 중단해서 사용자에게 보고
+   - 원격 추적 브랜치가 아직 없다면 `git push -u origin <branch>`로 push
 
-5. **Load the PR page**:
-   - Check whether a PR already exists for this branch: `gh pr view --json url,number 2>/dev/null`.
-   - If one exists, open it: `gh pr view --web`. Also report the PR URL in text in case the browser doesn't open in this environment.
-   - If none exists, **ask the user** whether to create one (opening a PR is a visible, shared-state action) — don't create it silently. If they confirm, draft a title/summary from the commit(s) on this branch (per the PR-creation convention: short title, `## Summary` + `## Test plan` body), run `gh pr create`, then open it with `gh pr view --web` and report the URL.
+5. **PR 페이지 열람/생성**:
+   - 현재 브랜치에 이미 PR이 있는지 확인: `gh pr view --json url,number 2>/dev/null`
+   - 있으면 `gh pr view --web`으로 열기. 브라우저가 안 열리는 환경일 수 있으니 URL도 텍스트로 함께 보고
+   - 없으면 **사용자에게 먼저 생성 여부를 확인** (PR 생성은 외부에 노출되는 행위이므로 임의로 만들지 않음). 승인하면 이 브랜치의 커밋(들)을 바탕으로 제목/설명(짧은 제목 + `## Summary` + `## Test plan`)을 작성해 `gh pr create` 실행 후 `gh pr view --web`으로 열고 URL 보고
 
-6. **Report**: summarize what was committed, whether a rebase happened (and how many commits it replayed), that the push succeeded, and the PR URL — include the branch name.
+6. **결과 보고**: 무엇을 커밋했는지, rebase가 일어났는지(재배치된 커밋 수 포함), push가 성공했는지, PR URL까지 포함해 요약 — 브랜치명도 함께 명시
 
-## Guardrails
+## 가드레일
 
-- Never run on `main`/`master` directly.
-- Never use plain `git push --force` — only `--force-with-lease`.
-- Never skip hooks (`--no-verify`) or bypass GPG signing.
-- If `git rebase` reports conflicts, pause for the user — don't guess at resolutions.
-- Don't amend existing commits as part of this flow; always create a new commit for pending changes.
-- Don't create a PR without the user's confirmation; opening/viewing an existing PR needs no confirmation.
+- `main`/`master`에서 직접 실행 금지
+- 일반 `git push --force` 금지 — 오직 `--force-with-lease`만 사용
+- hook 건너뛰기(`--no-verify`)나 GPG 서명 우회 금지
+- `git rebase`에서 충돌이 나면 임의로 해결하지 말고 사용자에게 확인
+- 이 흐름에서 기존 커밋을 amend하지 않음 — 대기 중인 변경사항은 항상 새 커밋으로 생성
+- 사용자 확인 없이 PR을 생성하지 않음 — 기존 PR을 열람만 하는 건 확인 불필요
