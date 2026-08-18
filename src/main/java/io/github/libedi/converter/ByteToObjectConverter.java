@@ -11,6 +11,8 @@ import io.github.libedi.converter.annotation.Embeddable;
 import io.github.libedi.converter.annotation.Ignorable;
 import io.github.libedi.converter.annotation.Iteration;
 import io.github.libedi.converter.exception.ConvertFailException;
+import io.github.libedi.converter.exception.ReflectionException;
+import io.github.libedi.converter.exception.TypeConversionException;
 
 /**
  * <p>
@@ -377,7 +379,7 @@ public class ByteToObjectConverter {
             try {
                 return hasAdditionalType(fieldType);
             } catch (final Exception e) {
-                throw new ConvertFailException(e);
+                throw new ReflectionException("Failed to check additional type", e);
             }
         };
     }
@@ -392,7 +394,7 @@ public class ByteToObjectConverter {
             try {
                 return invokeAdditionalField(fieldType, value);
             } catch (final Exception e) {
-                throw new ConvertFailException(e);
+                throw new TypeConversionException("Failed to invoke additional field conversion", e);
             }
         };
     }
@@ -407,7 +409,7 @@ public class ByteToObjectConverter {
             try {
                 return changeAdditionalDataToString(fieldData);
             } catch (final Exception e) {
-                throw new ConvertFailException(e);
+                throw new TypeConversionException("Failed to convert additional data to string", e);
             }
         };
     }

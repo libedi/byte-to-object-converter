@@ -23,6 +23,12 @@ import io.github.libedi.converter.annotation.ConvertData;
 import io.github.libedi.converter.annotation.Embeddable;
 import io.github.libedi.converter.annotation.Iteration;
 import io.github.libedi.converter.exception.ConvertFailException;
+import io.github.libedi.converter.exception.ConstructorInvocationException;
+import io.github.libedi.converter.exception.FieldAccessException;
+import io.github.libedi.converter.exception.MissingFormatException;
+import io.github.libedi.converter.exception.NegativeLengthException;
+import io.github.libedi.converter.exception.NullInputException;
+import io.github.libedi.converter.exception.TypeConversionException;
 
 /**
  * <p>
@@ -98,7 +104,7 @@ class ConversionHelper extends AbstractCommonHelper {
      */
     private <T> void validateArguments(final InputStream inputStream, final Class<T> type) {
         if (inputStream == null || type == null) {
-            throw new ConvertFailException("Neither inputStream nor type must be null.");
+            throw new NullInputException("Neither inputStream nor type must be null.");
         }
     }
 
@@ -113,7 +119,7 @@ class ConversionHelper extends AbstractCommonHelper {
         try {
             return makeAccessible(type.getDeclaredConstructor()).newInstance();
         } catch (final ReflectiveOperationException e) {
-            throw new ConvertFailException(e);
+            throw new ConstructorInvocationException("Failed to invoke constructor for type: " + type.getName(), e);
         }
     }
 
@@ -148,7 +154,7 @@ class ConversionHelper extends AbstractCommonHelper {
             }
             FieldUtils.writeField(field, targetObject, extractData(field, inputStream, targetObject, type), true);
         } catch (IOException | ReflectiveOperationException e) {
-            throw new ConvertFailException(e);
+            throw new FieldAccessException("Failed to set field: " + field.getName(), e);
         }
     }
 
@@ -245,7 +251,7 @@ class ConversionHelper extends AbstractCommonHelper {
         try {
             return readInputStream(inputStream, inputStream.available());
         } catch (final IOException e) {
-            throw new ConvertFailException(e);
+            throw new TypeConversionException("Failed to read from input stream", e);
         }
     }
 
@@ -258,14 +264,14 @@ class ConversionHelper extends AbstractCommonHelper {
      */
     private byte[] readInputStream(final InputStream inputStream, final int length) {
         if (length < 0) {
-            throw new ConvertFailException("ConvertData#length() value must not be negative.");
+            throw new NegativeLengthException("ConvertData#length() value must not be negative.");
         }
         try {
             final byte[] buf = new byte[length];
             inputStream.read(buf);
             return buf;
         } catch (final IOException e) {
-            throw new ConvertFailException(e);
+            throw new TypeConversionException("Failed to read input stream data", e);
         }
     }
 
@@ -307,7 +313,7 @@ class ConversionHelper extends AbstractCommonHelper {
         if (isJavaTimePackageClass(fieldType)) {
             final String format = field.getAnnotation(ConvertData.class).format();
             if (StringUtils.isBlank(format)) {
-                throw new ConvertFailException("Date format must not be empty.");
+                throw new MissingFormatException("Date format must not be empty.");
             }
             return MethodUtils.invokeStaticMethod(fieldType, "parse", value, DateTimeFormatter.ofPattern(format));
         }
@@ -326,7 +332,7 @@ class ConversionHelper extends AbstractCommonHelper {
         try {
             return StringUtils.trim(new String(readInputStream(inputStream, length), dataCharset));
         } catch (final RuntimeException e) {
-            throw new ConvertFailException(e);
+            throw new TypeConversionException("Failed to convert data to string", e);
         }
     }
 

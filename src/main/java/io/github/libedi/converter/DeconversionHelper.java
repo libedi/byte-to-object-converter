@@ -24,6 +24,10 @@ import io.github.libedi.converter.annotation.Embeddable;
 import io.github.libedi.converter.annotation.Ignorable;
 import io.github.libedi.converter.annotation.Iteration;
 import io.github.libedi.converter.exception.ConvertFailException;
+import io.github.libedi.converter.exception.FieldAccessException;
+import io.github.libedi.converter.exception.MissingFormatException;
+import io.github.libedi.converter.exception.NullInputException;
+import io.github.libedi.converter.exception.ReflectionException;
 
 /**
  * <p>
@@ -104,7 +108,7 @@ class DeconversionHelper extends AbstractCommonHelper {
      */
     private void validateArguments(final Object targetObject) {
         if (targetObject == null) {
-            throw new ConvertFailException("targetObject must not be null.");
+            throw new NullInputException("targetObject must not be null.");
         }
     }
 
@@ -133,7 +137,7 @@ class DeconversionHelper extends AbstractCommonHelper {
         try {
             baos.write(bytes);
         } catch (final IOException e) {
-            throw new ConvertFailException(e);
+            throw new FieldAccessException("Failed to write field data", e);
         }
     }
 
@@ -160,7 +164,7 @@ class DeconversionHelper extends AbstractCommonHelper {
             }
             return deconvertFieldDataToBytes(field, targetObject, fieldValue, alignment);
         } catch (final ReflectiveOperationException e) {
-            throw new ConvertFailException(e);
+            throw new FieldAccessException("Failed to access field for deconversion", e);
         }
     }
 
@@ -243,7 +247,7 @@ class DeconversionHelper extends AbstractCommonHelper {
                     : elementConstructor.newInstance();
             return deconvert(element, alignment);
         } catch (final ReflectiveOperationException e) {
-            throw new ConvertFailException(e);
+            throw new ReflectionException("Failed to deconvert list element", e);
         }
     }
 
@@ -322,7 +326,7 @@ class DeconversionHelper extends AbstractCommonHelper {
         if (isJavaTimePackageClass(fieldType)) {
             final String format = field.getAnnotation(ConvertData.class).format();
             if (StringUtils.isBlank(format)) {
-                throw new ConvertFailException("Date format must not be empty.");
+                throw new MissingFormatException("Date format must not be empty.");
             }
             return (String) MethodUtils.invokeMethod(value, true, "format", DateTimeFormatter.ofPattern(format));
         }
