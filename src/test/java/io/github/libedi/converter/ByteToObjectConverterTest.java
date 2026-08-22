@@ -225,15 +225,12 @@ class ByteToObjectConverterTest {
         final String actual = converter.convertInputStream(inputStream, intValueLength);
 
         // then
-        // 읽은 데이터의 길이가 정확히 요청한 길이여야 함
-        assertThat(actual).isNotNull();
-        assertThat(actual.length()).isEqualTo(intValueLength);
-        // 읽은 데이터를 trim하면 원본 intValue와 동일해야 함
-        assertThat(actual.trim()).isEqualTo(String.valueOf(expected.getIntValue()));
-        // 읽은 후 다음 바이트를 읽으면 longValue의 첫 부분이어야 함
+        // convertInputStream()은 읽은 데이터를 trim하여 반환하므로 원본 intValue와 동일해야 함
+        assertThat(actual).isEqualTo(String.valueOf(expected.getIntValue()));
+        // 읽은 후 다음 바이트를 읽으면 longValue의 첫 부분이어야 함 (raw 데이터와 직접 비교하여 읽기 위치 검증)
         final String nextBytes = converter.convertInputStream(inputStream, 5);
-        assertThat(nextBytes).isNotNull();
-        assertThat(nextBytes.length()).isEqualTo(5);
+        final String expectedNextBytes = new String(testData, intValueLength, 5, DATA_CHARSET).trim();
+        assertThat(nextBytes).isEqualTo(expectedNextBytes);
     }
 
     @NoArgsConstructor(access = AccessLevel.PRIVATE)

@@ -179,11 +179,10 @@ class DeconversionHelper extends AbstractCommonHelper {
      * @throws NoSuchMethodException
      * @throws SecurityException
      * @throws IllegalAccessException
-     * @throws InvocationTargetException
      */
     private byte[] extractIteratedData(final Field field, final Object targetObject, final Object listValue,
             final DataAlignment alignment)
-            throws NoSuchMethodException, SecurityException, IllegalAccessException, InvocationTargetException {
+            throws NoSuchMethodException, SecurityException, IllegalAccessException {
         final int size = getListSize(listValue);
         final Constructor<?> elementConstructor = makeAccessible(getGenericType(field).getDeclaredConstructor());
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -221,13 +220,9 @@ class DeconversionHelper extends AbstractCommonHelper {
      *
      * @param list
      * @return
-     * @throws NoSuchMethodException
-     * @throws IllegalAccessException
-     * @throws InvocationTargetException
      */
-    private int getListSize(final Object list)
-            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        return list == null ? 0 : (int) MethodUtils.invokeMethod(list, true, "size");
+    private int getListSize(final Object list) {
+        return list == null ? 0 : ((List<?>) list).size();
     }
 
     /**
@@ -240,11 +235,10 @@ class DeconversionHelper extends AbstractCommonHelper {
      * @param i
      * @return
      */
-    private byte[] deconvertElement(final Object targetObject, final DataAlignment alignment, final int size,
+    private byte[] deconvertElement(final Object listValue, final DataAlignment alignment, final int size,
             final Constructor<?> elementConstructor, final int i) {
         try {
-            final Object element = i < size ? MethodUtils.invokeMethod(targetObject, true, "get", i)
-                    : elementConstructor.newInstance();
+            final Object element = i < size ? ((List<?>) listValue).get(i) : elementConstructor.newInstance();
             return deconvert(element, alignment);
         } catch (final ReflectiveOperationException e) {
             throw new ReflectionException("Failed to deconvert list element", e);
