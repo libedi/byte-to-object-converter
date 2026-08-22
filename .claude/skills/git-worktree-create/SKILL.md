@@ -1,11 +1,17 @@
 ---
 name: git-worktree-create
-description: 새 작업(feature/bugfix)을 위해 최신 main에서 분기한 git worktree와 브랜치를 생성한다. 작업이 끝난 뒤가 아니라, 사용자가 앞으로 할 작업을 설명하며 격리된 worktree를 원할 때 작업 시작 전에 사용한다.
+description: 새 작업(feature/bugfix/실험)을 시작하기 전에 최신 base 브랜치(기본값 develop, 사용자 확인 후 결정)에서 분기한 격리된 git worktree와 브랜치를 생성한다. 사용자가 "worktree 만들어줘", "새 브랜치 파줘", "이 작업은 별도 디렉토리에서 하고 싶어", "지금 작업 디렉토리는 그대로 두고 새 기능 시작하자"처럼 "worktree"를 직접 언급하지 않아도 새로운 작업을 격리된 환경에서 시작하려 할 때 사용한다.
 ---
 
 # Git Worktree 생성
 
 새로운 작업이 **시작되기 전에** 격리된 worktree + 브랜치를 만들어서, 현재 작업 디렉토리를 건드리지 않게 한다. 네이밍은 나중에 diff를 보고 짓는 게 아니라, 사용자가 *미리* 설명한 작업 내용을 바탕으로 정한다.
+
+## Gotchas
+
+- base 브랜치명은 저장소마다 다를 수 있음(`main`, `develop`, `master` 등) — 기본 제안값 `develop`이 실제로는 존재하지 않는 저장소도 있으므로, 확인 없이 그대로 실행하지 않고 사용자가 답한 브랜치를 그대로 사용
+- 로컬 `main`/현재 체크아웃된 브랜치는 오래됐을 수 있음 — 항상 `git fetch origin <base-branch>`로 최신화한 뒤 그 위에서 분기
+- `.claude/worktrees/`는 이미 gitignore 처리되어 있어 실수로 커밋될 위험 없음
 
 ## 언제 사용하는가
 
@@ -16,7 +22,10 @@ description: 새 작업(feature/bugfix)을 위해 최신 main에서 분기한 gi
 
 1. **작업 내용 파악**: 사용자의 요청에 이미 무슨 작업을 할지 설명이 있으면 그것을 사용. "worktree 만들어줘"라고만 하고 맥락이 없으면, 진행 전에 어떤 작업인지 먼저 물어봄 — 브랜치명이 여기에 달려 있음
 
-2. **base 브랜치 동기화**: `git fetch origin main` — 항상 최신 `origin/main` 기준으로 분기 (오래됐을 수 있는 로컬 `main`이나 현재 브랜치 기준 아님)
+2. **base 브랜치 확인 (사용자 문의 필수) 및 동기화** (Gotchas 참고):
+   - 기본값 `develop`을 제안하되 진행 전 반드시 사용자에게 확인 (예: "base 브랜치를 `origin/develop`에서 분기할까요? 다른 브랜치를 쓰시려면 알려주세요")
+   - 사용자가 확인/지정한 브랜치를 이후 단계의 `<base-branch>`로 사용
+   - `git fetch origin <base-branch>`로 최신화 후 그 위에서 분기
 
 3. **브랜치명 추론**, 이 저장소의 기존 컨벤션(`feature/<slug>`, `feature/<이슈번호>-<slug>`, `bugfix/<slug>`)에 맞춤:
    - **접두사**: 결함/버그 수정이 명확하면 `bugfix/`, 그 외에는 기본값 `feature/`
@@ -28,16 +37,16 @@ description: 새 작업(feature/bugfix)을 위해 최신 main에서 분기한 gi
 
 5. **worktree 생성**:
    ```bash
-   git worktree add -b <branch-name> .claude/worktrees/<dir-name> origin/main
+   git worktree add -b <branch-name> .claude/worktrees/<dir-name> origin/<base-branch>
    ```
    - `<dir-name>`은 브랜치명의 `/`를 `-`로 바꾼 것 (예: `feature/12-add-x` → `.claude/worktrees/feature-12-add-x`)
-   - `.claude/worktrees/`는 이미 gitignore 처리되어 있어 커밋될 위험 없음
 
 6. **결과 보고**: 새 worktree의 절대 경로와 브랜치명을 보고해서 그 안에서 작업을 시작할 수 있게 함 (예: agent 세션을 몰아갈 경우 `EnterWorktree` 사용, 아니면 사용자에게 해당 경로로 `cd`하도록 안내)
 
 ## 가드레일
 
-- 로컬 `main`에서 분기하지 않음 — 항상 새로 fetch한 `origin/main` 기준
+- base 브랜치는 반드시 사용자 확인 후 결정 — 기본값(`develop`)을 임의로 단정하고 진행하지 않음
+- 로컬 브랜치에서 분기하지 않음 — 항상 새로 fetch한 `origin/<base-branch>` 기준
 - 기존 worktree 디렉토리를 덮어쓰거나 기존 브랜치명을 재사용하기 전에 반드시 확인
 - 언급되지 않은 이슈번호를 임의로 추론하지 않음
 - 이 skill은 worktree 생성까지만 담당 — 실제 작업이나 이후 정리는 하지 않음. 제거(`git worktree remove <path>` + `git branch -d <branch>`)는 작업이 merge된 후 별도로 진행하는 것
