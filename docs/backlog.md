@@ -36,10 +36,21 @@
   - `./gradlew test` 8/8 통과 확인 (Maven 결과와 동일)
 - [x] 기존 `mvnw`/`mvnw.cmd`/`pom.xml`/`.mvn/` 제거 — 2026-08-23, `git rm`으로 삭제(스테이징만, 아직 커밋 안 됨). 삭제 후 `./gradlew clean test`로 Gradle 단독 상태에서도 재확인 완료.
 
+**종료조건 (충족 — 2026-08-23, 커밋 `32bb17a`)**
+- [x] `./gradlew clean test` 전체 그린
+- [x] Maven 잔재(`pom.xml`/`mvnw`/`mvnw.cmd`/`.mvn/`) 저장소에서 완전 제거
+- [x] 변경사항 커밋 + push 완료
+
 ### Phase 2 — Java 25 베이스라인
-- [ ] `build.gradle`의 `sourceCompatibility`/`toolchain`을 Java 25로 설정
-- [ ] JDK 25 기준으로 컴파일 확인 (lombok 최신 버전은 이미 1.18.38로 확보됨 — Gradle 쪽에도 동일 버전 적용)
-- [ ] 소스 코드 중 Java 8 시절 관례(예: 구식 리플렉션 접근 패턴)를 최신 API로 정리할 부분 있는지 점검
+- [x] `build.gradle`의 `sourceCompatibility`/`toolchain`을 Java 25로 설정 — 2026-08-23, `sourceCompatibility`/`targetCompatibility` 대신 `java { toolchain { languageVersion = JavaLanguageVersion.of(25) } }` 사용. toolchain 방식이 Gradle 실행 JVM과 무관하게 컴파일/테스트에 쓰일 JDK를 고정하므로 `sourceCompatibility`만 쓰는 것보다 명확함.
+- [x] JDK 25 기준으로 컴파일 확인 — `./gradlew javaToolchains`로 로컬 Temurin 25.0.3이 "Detected by: Current JVM"으로 자동 인식됨을 확인, 별도 다운로드 없이 그 JDK로 컴파일/테스트 수행됨.
+- [x] 소스 코드 중 Java 8 시절 관례 점검 — `AbstractCommonHelper.makeAccessible()`이 Java 9부터 deprecated된 `Constructor#isAccessible()`을 쓰고 있던 걸 발견(컴파일 경고 `uses or overrides a deprecated API`로 드러남). `canAccess(null)`로 교체 후 경고 사라짐. 그 외 리플렉션 관례는 Commons Lang3 `FieldUtils`/`MethodUtils` 경유라 별도 정리 불필요로 판단.
+
+**종료조건 (충족 — 2026-08-23)**
+- [x] `build.gradle.kts`에 Java 25 toolchain 설정 반영
+- [x] JDK 25 toolchain으로 `./gradlew clean test` 전체 그린 (8/8)
+- [x] 컴파일 경고 해소 — `source/target value 8 is obsolete` 경고는 toolchain 25 적용으로 자연 소멸, deprecated API 경고는 `canAccess(null)`로 교체하여 해소
+- [x] Java 8 관례 정리 결론: `makeAccessible()` 1건 정리함, 나머지는 정리 불필요로 판단
 
 ### Phase 3 — 의존성/플러그인 전면 최신화
 - [ ] 런타임: `commons-lang3` 최신 버전 확인
@@ -47,32 +58,57 @@
 - [ ] Javadoc/소스잭/GPG 서명에 해당하는 Gradle 플러그인 구성 (`java-library`, `maven-publish`, `signing`)
 - [ ] Sonatype Central Publishing용 Gradle 플러그인 결정 (예: Central Portal 공식 Gradle 플러그인) 및 인증 연결
 
+**종료조건**
+- [ ] 런타임/테스트 의존성 전부 최신 버전으로 갱신(또는 갱신 보류 사유 기록) — 특히 `spring-test`는 최신화 또는 대체 결론 필수
+- [ ] `./gradlew build`로 javadoc jar, source jar 생성 성공 (JDK 25 javadoc 툴 인코딩/`{@link}` 문제 해소 확인)
+- [ ] `signing` 플러그인 설정으로 로컬 서명 성공 (실제 배포는 Phase 6에서 검증)
+- [ ] Central Publishing용 Gradle 플러그인 선정 완료 및 인증 정보 연결 확인
+- [ ] `./gradlew clean test` 전체 그린 유지
+
 ### Phase 4 — 테스트 정상화
 - [x] JPMS `opens` 문제 해결 — 2026-08-22, Maven 기준으로 조기 해결(순서상 Phase 1보다 먼저 처리, 커밋 `2fe1e61`). `--add-opens` 등 실행 설정으로 우회하는 대신, `DeconversionHelper.getListSize()`/`deconvertElement()`가 `MethodUtils.invokeMethod(list, true, "size"/"get")`로 리스트의 실제 런타임 클래스에 강제 리플렉션 접근하던 걸 `List` 캐스팅 후 직접 호출로 변경. 테스트가 `subList()`로 만드는 JDK 내부 클래스(`ArrayList$SubList`)를 넘길 때 JDK 16+ 모듈 시스템이 `setAccessible`을 막던 게 근본 원인이었음. Gradle 전환 이후에도 이 수정은 그대로 유효.
 - [x] `testConvertInputStream_DirectMethod` assertion 실패(`expected 15 but was 10`) 원인 조사 및 수정 — 2026-08-22, 커밋 `2fe1e61`. JDK 버전과 무관한 순수 테스트 버그였음: `convertInputStream()`은 결과를 trim해서 반환하도록 설계되어 있는데, 테스트는 trim된 문자열 길이가 trim 전 길이(15)와 같아야 한다고 assert하고 있어서 `int` 값이 우연히 15자리가 아닌 이상(사실상 항상) 실패하는 구조였음. 실제 값/다음 읽기 위치를 검증하도록 assertion을 고침.
 - [x] 전체 테스트 그린 상태 확보 — Maven 기준 `mvn test` 8/8 통과 확인(2026-08-22). **단, Gradle 전환 후 `./gradlew test`로 재확인 필요** (Phase 1 마무리 항목).
 
+**종료조건 (충족 — 2026-08-23, Phase 1에서 `./gradlew clean test` 8/8로 재확인됨)**
+- [x] 알려진 실패 원인(JPMS, assertion 버그) 모두 해결
+- [x] Maven 기준 전체 테스트 그린
+- [x] Gradle 기준 전체 테스트 그린 (재확인 완료)
+
 ### Phase 5 — 문서화
 - [ ] `CLAUDE.md` 갱신: Java 25 요구사항, Gradle 빌드/테스트 명령어로 교체
 - [ ] `README` 갱신: 설치/빌드 안내, 최소 Java 버전 명시, 1.x와의 breaking change 안내
+
+**종료조건**
+- [ ] `CLAUDE.md`의 빌드 명령어/버전 정보가 Gradle + Java 25 기준으로 정확히 일치 (Maven 언급 잔재 없음)
+- [ ] `README`에 최소 Java 버전(25), 설치/빌드 안내, 1.x → 2.0 breaking change 안내가 모두 반영됨
+- [ ] 문서에 적힌 명령어(`./gradlew ...`)를 실제로 실행해서 동작 확인
 
 ### Phase 6 — Publish 파이프라인 재검증 & 실제 릴리스
 - [ ] Gradle 기준으로 `2.0.0-SNAPSHOT` 배포 dry-run (서명 + Sonatype 인증 + 업로드 확인)
 - [ ] 전체 그린 상태에서 `2.0.0` 정식 배포
 - [ ] GitHub 릴리스/태그 정리
 
+**종료조건**
+- [ ] `2.0.0-SNAPSHOT` dry-run이 서명·업로드까지 실제로 성공 (Sonatype 콘솔에서 확인)
+- [ ] `2.0.0` 정식 버전이 Maven Central에 게시되고 조회 가능
+- [ ] GitHub 릴리스/태그 생성 완료, 릴리스 노트에 breaking change 명시
+
 ## 메모
 
 - 각 Phase 종료 시점마다 빌드 가능한 상태를 유지하는 것을 목표로 한다 (중간에 오래 깨진 상태로 두지 않기).
 - Phase 순서는 유동적으로 조정 가능 — 진행하면서 막히는 지점이 있으면 이 문서를 갱신한다.
+- 각 Phase는 해당 절의 "종료조건"을 모두 충족해야 다음 Phase로 넘어간다. 종료조건 미충족 상태로 다음 Phase에
+  착수해야 하는 예외 상황이 생기면, 그 사유를 세션 로그에 남기고 이 문서를 갱신한다.
 
 ## 세션 로그
 
 ### 2026-08-23
 
-- Phase 1 마무리: `build.gradle.kts` 작성 → `./gradlew test` 그린(8/8) 확인 → `pom.xml`/`mvnw`/`mvnw.cmd`/`.mvn/` `git rm`으로 제거 → `./gradlew clean test`로 재확인.
-- 아직 커밋 안 됨 (다음 커밋에 다음을 함께 묶을 것): `build.gradle.kts`(신규), `gradlew`/`gradlew.bat`/`gradle/`(신규), `settings.gradle.kts`(신규), `pom.xml`/`mvnw`/`mvnw.cmd`/`.mvn/`(삭제), `docs/backlog.md`(갱신).
-- **다음 세션 시작점**: 위 변경을 한 커밋으로 정리(커밋 메시지에 Maven→Gradle 전환 명시) → Phase 2(Java 25 베이스라인)로 진행.
+- Phase 1 마무리: `build.gradle.kts` 작성 → `./gradlew test` 그린(8/8) 확인 → `pom.xml`/`mvnw`/`mvnw.cmd`/`.mvn/` `git rm`으로 제거 → `./gradlew clean test`로 재확인 → 커밋(`32bb17a`) → `origin/main` rebase(변경 없음, 이미 최신) → push(fast-forward) → PR #16(OPEN)에 반영 확인.
+- 백로그에 Phase별 "종료조건" 섹션 추가 (사용자 요청 — 각 Phase가 검증된 상태로 넘어가도록).
+- Phase 2(Java 25 베이스라인) 진행: `toolchain(languageVersion=25)` 설정 → `./gradlew javaToolchains`로 로컬 Temurin 25.0.3 자동 인식 확인 → `AbstractCommonHelper.makeAccessible()`의 deprecated `isAccessible()` → `canAccess(null)`로 교체 → `./gradlew clean test` 8/8 그린, 경고 없음. **아직 커밋 안 됨** (사용자가 "Phase 2 진행 후 같이 커밋하자"고 지시).
+- **다음 세션 시작점**: `build.gradle.kts`(toolchain 25), `AbstractCommonHelper.java`(canAccess 수정), `docs/backlog.md`(Phase 2 완료 기록 + 종료조건 섹션) 변경사항을 한 커밋으로 정리 → push → 이후 Phase 3(의존성/플러그인 전면 최신화)로 진행.
 
 ### 2026-08-22
 
