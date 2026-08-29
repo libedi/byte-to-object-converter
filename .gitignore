@@ -254,6 +254,9 @@ gradle-app.setting
 ### Gradle Patch ###
 **/build/
 
+# Local-only Gradle properties (may contain signing/Central Portal credentials)
+gradle.properties
+
 # Eclipse Gradle plugin generated files
 # Eclipse Core
 # JDT-specific (Eclipse Java Development Tools)

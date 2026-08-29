@@ -16,10 +16,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.junit.jupiter.api.Test;
 
 import autoparams.AutoSource;
@@ -61,12 +61,12 @@ class ByteToObjectConverterTest {
     @Customization(BuilderCustomizer.class)
     void convert(final TestObject expected) throws Exception {
         // given
-        ReflectionTestUtils.setField(expected, "dateTimeValue",
+        FieldUtils.writeField(expected, "dateTimeValue",
                 LocalDateTime.parse(expected.getDateTimeValue().format(DateTimeFormatter.ofPattern(DATETIME_FORMAT)),
-                        DateTimeFormatter.ofPattern(DATETIME_FORMAT))); // truncate milliseconds
-        ReflectionTestUtils.setField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size());
-        ReflectionTestUtils.setField(expected, "voList", expected.getVoList().subList(0, 2));
-        ReflectionTestUtils.setField(expected, "ignorable", null);
+                        DateTimeFormatter.ofPattern(DATETIME_FORMAT)), true); // truncate milliseconds
+        FieldUtils.writeField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size(), true);
+        FieldUtils.writeField(expected, "voList", expected.getVoList().subList(0, 2), true);
+        FieldUtils.writeField(expected, "ignorable", null, true);
 
         final InputStream inputStream = new ByteArrayInputStream(convertTestData(expected));
 
@@ -99,12 +99,12 @@ class ByteToObjectConverterTest {
     @Customization(BuilderCustomizer.class)
     void deconvert(final TestObject expected) throws Exception {
         // given
-        ReflectionTestUtils.setField(expected, "dateTimeValue",
+        FieldUtils.writeField(expected, "dateTimeValue",
                 LocalDateTime.parse(expected.getDateTimeValue().format(DateTimeFormatter.ofPattern(DATETIME_FORMAT)),
-                        DateTimeFormatter.ofPattern(DATETIME_FORMAT))); // truncate milliseconds
-        ReflectionTestUtils.setField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size());
-        ReflectionTestUtils.setField(expected, "voList", expected.getVoList().subList(0, 2));
-        ReflectionTestUtils.setField(expected, "ignorable", null);
+                        DateTimeFormatter.ofPattern(DATETIME_FORMAT)), true); // truncate milliseconds
+        FieldUtils.writeField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size(), true);
+        FieldUtils.writeField(expected, "voList", expected.getVoList().subList(0, 2), true);
+        FieldUtils.writeField(expected, "ignorable", null, true);
 
         final byte[] expectedBytes = convertTestData(expected);
 
@@ -121,12 +121,12 @@ class ByteToObjectConverterTest {
     @Customization(BuilderCustomizer.class)
     void testDeconvert_DataAlignmentRIGHT(final TestObject expected) throws Exception {
         // given
-        ReflectionTestUtils.setField(expected, "dateTimeValue",
+        FieldUtils.writeField(expected, "dateTimeValue",
                 LocalDateTime.parse(expected.getDateTimeValue().format(DateTimeFormatter.ofPattern(DATETIME_FORMAT)),
-                        DateTimeFormatter.ofPattern(DATETIME_FORMAT))); // truncate milliseconds
-        ReflectionTestUtils.setField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size());
-        ReflectionTestUtils.setField(expected, "voList", expected.getVoList().subList(0, 2));
-        ReflectionTestUtils.setField(expected, "ignorable", null);
+                        DateTimeFormatter.ofPattern(DATETIME_FORMAT)), true); // truncate milliseconds
+        FieldUtils.writeField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size(), true);
+        FieldUtils.writeField(expected, "voList", expected.getVoList().subList(0, 2), true);
+        FieldUtils.writeField(expected, "ignorable", null, true);
 
         // when
         final byte[] rightAligned = converter.deconvert(expected, DataAlignment.RIGHT);
@@ -152,12 +152,12 @@ class ByteToObjectConverterTest {
     @Customization(BuilderCustomizer.class)
     void testDeconvert_IgnorableNonNullField(final TestObject expected) throws Exception {
         // given
-        ReflectionTestUtils.setField(expected, "dateTimeValue",
+        FieldUtils.writeField(expected, "dateTimeValue",
                 LocalDateTime.parse(expected.getDateTimeValue().format(DateTimeFormatter.ofPattern(DATETIME_FORMAT)),
-                        DateTimeFormatter.ofPattern(DATETIME_FORMAT))); // truncate milliseconds
-        ReflectionTestUtils.setField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size());
-        ReflectionTestUtils.setField(expected, "voList", expected.getVoList().subList(0, 2));
-        ReflectionTestUtils.setField(expected, "ignorable", "testValue"); // Ignorable 필드에 값 설정
+                        DateTimeFormatter.ofPattern(DATETIME_FORMAT)), true); // truncate milliseconds
+        FieldUtils.writeField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size(), true);
+        FieldUtils.writeField(expected, "voList", expected.getVoList().subList(0, 2), true);
+        FieldUtils.writeField(expected, "ignorable", "testValue", true); // Ignorable 필드에 값 설정
 
         // when
         final byte[] actual = converter.deconvert(expected, DataAlignment.LEFT);
@@ -165,7 +165,7 @@ class ByteToObjectConverterTest {
         // then
         assertThat(actual).isNotEmpty();
         // ignorable 필드가 포함되어야 하므로 결과는 null일 때보다 더 길어야 함
-        ReflectionTestUtils.setField(expected, "ignorable", null);
+        FieldUtils.writeField(expected, "ignorable", null, true);
         final byte[] withoutIgnorable = converter.deconvert(expected, DataAlignment.LEFT);
         assertThat(actual.length).isGreaterThan(withoutIgnorable.length);
     }
@@ -176,12 +176,12 @@ class ByteToObjectConverterTest {
     @Customization(BuilderCustomizer.class)
     void testDeconvert_IgnorableNullField(final TestObject expected) throws Exception {
         // given
-        ReflectionTestUtils.setField(expected, "dateTimeValue",
+        FieldUtils.writeField(expected, "dateTimeValue",
                 LocalDateTime.parse(expected.getDateTimeValue().format(DateTimeFormatter.ofPattern(DATETIME_FORMAT)),
-                        DateTimeFormatter.ofPattern(DATETIME_FORMAT))); // truncate milliseconds
-        ReflectionTestUtils.setField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size());
-        ReflectionTestUtils.setField(expected, "voList", expected.getVoList().subList(0, 2));
-        ReflectionTestUtils.setField(expected, "ignorable", null); // Ignorable 필드를 null로 명시
+                        DateTimeFormatter.ofPattern(DATETIME_FORMAT)), true); // truncate milliseconds
+        FieldUtils.writeField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size(), true);
+        FieldUtils.writeField(expected, "voList", expected.getVoList().subList(0, 2), true);
+        FieldUtils.writeField(expected, "ignorable", null, true); // Ignorable 필드를 null로 명시
 
         // when
         final byte[] resultWithNullIgnorable = converter.deconvert(expected, DataAlignment.LEFT);
@@ -190,7 +190,7 @@ class ByteToObjectConverterTest {
         assertThat(resultWithNullIgnorable).isNotEmpty();
 
         // ignorable 필드가 null일 때와 값이 있을 때의 바이트 길이 비교
-        ReflectionTestUtils.setField(expected, "ignorable", "testValue");
+        FieldUtils.writeField(expected, "ignorable", "testValue", true);
         final byte[] resultWithValueIgnorable = converter.deconvert(expected, DataAlignment.LEFT);
         // null일 때는 ignorable 필드가 제외되므로 더 작은 바이트 길이여야 함
         assertThat(resultWithNullIgnorable.length).isLessThan(resultWithValueIgnorable.length);
@@ -210,12 +210,12 @@ class ByteToObjectConverterTest {
     @Customization(BuilderCustomizer.class)
     void testConvertInputStream_DirectMethod(final TestObject expected) throws Exception {
         // given
-        ReflectionTestUtils.setField(expected, "dateTimeValue",
+        FieldUtils.writeField(expected, "dateTimeValue",
                 LocalDateTime.parse(expected.getDateTimeValue().format(DateTimeFormatter.ofPattern(DATETIME_FORMAT)),
-                        DateTimeFormatter.ofPattern(DATETIME_FORMAT))); // truncate milliseconds
-        ReflectionTestUtils.setField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size());
-        ReflectionTestUtils.setField(expected, "voList", expected.getVoList().subList(0, 2));
-        ReflectionTestUtils.setField(expected, "ignorable", null);
+                        DateTimeFormatter.ofPattern(DATETIME_FORMAT)), true); // truncate milliseconds
+        FieldUtils.writeField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size(), true);
+        FieldUtils.writeField(expected, "voList", expected.getVoList().subList(0, 2), true);
+        FieldUtils.writeField(expected, "ignorable", null, true);
 
         final byte[] testData = convertTestData(expected);
         final InputStream inputStream = new ByteArrayInputStream(testData);
