@@ -267,4 +267,7 @@ gradle.properties
 ### Claude Code personal settings ###
 .claude/settings.local.json
 
+### Backlog Document ###
+backlog.md
+
 # End of https://www.toptal.com/developers/gitignore/api/java,eclipse,intellij,maven,git,gradle
