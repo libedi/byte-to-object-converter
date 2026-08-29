@@ -264,4 +264,7 @@ gradle.properties
 ### Git Worktrees ###
 .claude/worktrees/
 
+### Claude Code personal settings ###
+.claude/settings.local.json
+
 # End of https://www.toptal.com/developers/gitignore/api/java,eclipse,intellij,maven,git,gradle
