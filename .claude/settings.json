@@ -1,4 +1,25 @@
 {
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/libed/.claude/**)",
+      "Bash(mkdir -p ~/.claude/rules ~/.claude/skills/backlog)",
+      "Bash(cp \".claude/rules/backlog.md\" ~/.claude/rules/backlog.md)",
+      "Bash(cp \".claude/skills/backlog/SKILL.md\" ~/.claude/skills/backlog/SKILL.md)",
+      "Bash(rm \".claude/rules/backlog.md\")",
+      "Bash(rmdir \".claude/rules\")",
+      "Bash(rm -rf \".claude/skills/backlog\")",
+      "Bash(ls -la \".claude/\" 2>/dev/null; echo \"---user rules---\"; ls -la ~/.claude/rules/; echo \"---user skills/backlog---\"; ls -la ~/.claude/skills/backlog/)",
+      "Read(//c/Users/libed/.claude/rules/**)",
+      "Bash(javac -cp 'build/classes/java/main;C:/Users/libed/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-lang3/3.20.0/65897b3e5731220962e659e001904af3c3cbeba9/commons-lang3-3.20.0.jar' -d C:/Users/libed/AppData/Local/Temp/claude/d--project-repository-byte-to-object-converter/abc5d9bb-5d02-4dca-87c1-ba1c8b513e11/scratchpad /tmp/TestScratch.java)",
+      "Bash(java -cp 'C:/Users/libed/AppData/Local/Temp/claude/d--project-repository-byte-to-object-converter/abc5d9bb-5d02-4dca-87c1-ba1c8b513e11/scratchpad;build/classes/java/main;C:/Users/libed/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-lang3/3.20.0/65897b3e5731220962e659e001904af3c3cbeba9/commons-lang3-3.20.0.jar' TestScratch)",
+      "Bash(rm -f /tmp/TestScratch.java /tmp/TestScratch.class '/tmp/TestScratch$Obj.class')",
+      "Bash(rm -f C:/Users/libed/AppData/Local/Temp/claude/d--project-repository-byte-to-object-converter/abc5d9bb-5d02-4dca-87c1-ba1c8b513e11/scratchpad/TestScratch.class 'C:/Users/libed/AppData/Local/Temp/claude/d--project-repository-byte-to-object-converter/abc5d9bb-5d02-4dca-87c1-ba1c8b513e11/scratchpad/TestScratch$Obj.class')",
+      "Bash(cd \"d:/project/repository/byte-to-object-converter\" && git diff --stat .claude/rules/backlog.md .claude/skills/backlog/SKILL.md *)"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\libed\\.claude"
+    ]
+  },
   "hooks": {
     "Stop": [
       {
