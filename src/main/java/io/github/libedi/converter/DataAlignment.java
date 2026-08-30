@@ -6,6 +6,8 @@ import java.util.function.BiFunction;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import io.github.libedi.converter.annotation.ConvertData;
+
 /**
  * <p>
  * Object를 byte[] 데이터로 역변환할 때 필드 데이터의 정렬 방식을 지정합니다.
