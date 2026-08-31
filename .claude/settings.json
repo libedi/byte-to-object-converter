@@ -14,7 +14,14 @@
       "Bash(java -cp 'C:/Users/libed/AppData/Local/Temp/claude/d--project-repository-byte-to-object-converter/abc5d9bb-5d02-4dca-87c1-ba1c8b513e11/scratchpad;build/classes/java/main;C:/Users/libed/.gradle/caches/modules-2/files-2.1/org.apache.commons/commons-lang3/3.20.0/65897b3e5731220962e659e001904af3c3cbeba9/commons-lang3-3.20.0.jar' TestScratch)",
       "Bash(rm -f /tmp/TestScratch.java /tmp/TestScratch.class '/tmp/TestScratch$Obj.class')",
       "Bash(rm -f C:/Users/libed/AppData/Local/Temp/claude/d--project-repository-byte-to-object-converter/abc5d9bb-5d02-4dca-87c1-ba1c8b513e11/scratchpad/TestScratch.class 'C:/Users/libed/AppData/Local/Temp/claude/d--project-repository-byte-to-object-converter/abc5d9bb-5d02-4dca-87c1-ba1c8b513e11/scratchpad/TestScratch$Obj.class')",
-      "Bash(cd \"d:/project/repository/byte-to-object-converter\" && git diff --stat .claude/rules/backlog.md .claude/skills/backlog/SKILL.md *)"
+      "Bash(cd \"d:/project/repository/byte-to-object-converter\" && git diff --stat .claude/rules/backlog.md .claude/skills/backlog/SKILL.md *)",
+      "Bash(mkdir -p .claude/skills/backlog .claude/skills/git-commit-push .claude/skills/git-worktree-create .claude/skills/skill-creator/references .claude/skills/skill-creator/scripts .claude/rules)",
+      "Bash(cp ~/.claude/skills/backlog/SKILL.md .claude/skills/backlog/SKILL.md)",
+      "Bash(cp ~/.claude/skills/git-commit-push/SKILL.md .claude/skills/git-commit-push/SKILL.md)",
+      "Bash(cp ~/.claude/skills/git-worktree-create/SKILL.md .claude/skills/git-worktree-create/SKILL.md)",
+      "Bash(cp ~/.claude/skills/skill-creator/SKILL.md .claude/skills/skill-creator/SKILL.md)",
+      "Bash(mv ~/.claude/rules/backlog.md ~/.claude/rules/backlog-rules.md)",
+      "Bash(mv .claude/rules/backlog.md .claude/rules/backlog-rules.md)"
     ],
     "additionalDirectories": [
       "C:\\Users\\libed\\.claude"
