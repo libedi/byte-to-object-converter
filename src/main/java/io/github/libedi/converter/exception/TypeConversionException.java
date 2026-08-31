@@ -29,6 +29,9 @@ package io.github.libedi.converter.exception;
  *
  * &#64;ConvertData(value = 8, format = "yyyyMMdd")
  * LocalDate date;  // byte가 "20241399"인 경우 DateParsingException 발생
+ *
+ * &#64;ConvertData(3)
+ * Week day;  // byte가 Week의 유효한 상수명이 아닌 경우 TypeConversionException 발생
  * </pre>
  *
  * @author "Sangjun,Park"

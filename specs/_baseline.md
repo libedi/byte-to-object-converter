@@ -23,6 +23,8 @@ feature spec들의 가드레일 역할을 하는 정본 문서다. **SDD(스펙 
 | G-3 | 서명 키·Central Portal 토큰 등 자격증명은 저장소 안 어떤 파일에도(템플릿 포함) 두지 않는다 — 프로퍼티의 존재 여부로만 필수 여부를 판단하고, 실제 값은 개발자 개인의 `~/.gradle/gradle.properties` 또는 CI 환경 변수에서만 읽는다. |
 | G-4 | 의존성 좌표·버전은 `build.gradle.kts`에 직접 쓰지 않고 `gradle/libs.versions.toml` Version Catalog에 선언한다. |
 | G-5 | Gradle 빌드 스크립트는 Kotlin DSL(`build.gradle.kts`, `settings.gradle.kts`)을 쓴다 — Groovy DSL로 새로 작성하지 않는다. (원본: `docs/backlog.md` 2026-08-22 세션 로그) |
+| G-6 | byte[] → Object 변환에서 필드 값 파싱 실패는 항상 `TypeConversionException` 계층의 예외로 던지고(전용 하위 타입이 있으면 그것을, 없으면 `TypeConversionException` 자체를), 파싱과 무관한 리플렉션 접근 오류는 `FieldAccessException`으로 남긴다. |
+| G-7 | Correctness Property는 jqwik `@Property`/`@ForAll`로 구현한다 — AutoParams(`@AutoSource`)는 shrinking을 지원하지 않으므로 대체하지 않는다. |
 
 ---
 
@@ -33,6 +35,8 @@ feature spec들의 가드레일 역할을 하는 정본 문서다. **SDD(스펙 
 | ID | 결정 | 근거 (요약) | 영향 범위 | 원본 |
 |----|------|-------------|-----------|------|
 | D-1 | Central Portal 배포 플러그인으로 `com.gradleup.nmcp`(`publishingType = USER_MANAGED`)를 채택 | OSSRH sunset 이후 Sonatype 공식 Gradle 플러그인이 없는 상태에서, Central Portal REST API를 직접 지원하고 SNAPSHOT 배포도 되는 커뮤니티 플러그인 중 활발히 유지보수되는 쪽을 선택 | 배포(publish) 파이프라인 전체 | [specs/01-dependency-plugin-modernization/design.md](01-dependency-plugin-modernization/design.md) Component 6 |
+| D-6 | byte[] → Object 변환의 필드 값 파싱 실패는 `TypeConversionException` 계층 예외로, 파싱과 무관한 리플렉션 접근 오류는 `FieldAccessException`으로 구분해서 던진다 | 여러 클래스에 걸친 예외 처리 체계의 구조적 패턴이며, 향후 새 타입 지원을 추가하는 스펙(예: `BigDecimal` 지원)이 암묵적으로 따라야 할 전제이기 때문 | `ConversionHelper`의 값 파싱/예외 변환 로직 전체, 향후 새 타입 지원 스펙 | [specs/02-exception-hierarchy-consistency/design.md](02-exception-hierarchy-consistency/design.md) Component 1~5 |
+| D-7 | Correctness Property 구현 표준 도구로 jqwik을 채택 | AutoParams(`@AutoSource`)는 무작위 예시 데이터를 생성할 뿐 shrinking을 지원하지 않아 진정한 property 검증에는 부족하기 때문 | 테스트 전략 전반(향후 Correctness Property를 다루는 모든 feature spec) | [specs/02-exception-hierarchy-consistency/design.md](02-exception-hierarchy-consistency/design.md) Correctness Properties |
 
 feature spec의 design.md는 자신과 관련된 항목을 인용하며 준수/이탈 여부를 명시해야 한다.
 

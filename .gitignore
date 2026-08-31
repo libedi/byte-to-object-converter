@@ -270,4 +270,7 @@ gradle.properties
 ### Backlog Document ###
 backlog.md
 
+### jqwik ###
+.jqwik-database
+
 # End of https://www.toptal.com/developers/gitignore/api/java,eclipse,intellij,maven,git,gradle

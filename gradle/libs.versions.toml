@@ -5,6 +5,7 @@ mockito = "5.23.0"
 assertj = "3.27.7"
 lombok = "1.18.46"
 autoparams = "11.3.2"
+jqwik = "1.9.3"
 nmcp = "1.6.1"
 
 [libraries]
@@ -18,6 +19,7 @@ assertj-core = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 autoparams = { module = "io.github.autoparams:autoparams", version.ref = "autoparams" }
 autoparams-lombok = { module = "io.github.autoparams:autoparams-lombok", version.ref = "autoparams" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
+jqwik = { module = "net.jqwik:jqwik", version.ref = "jqwik" }
 
 [plugins]
 nmcp = { id = "com.gradleup.nmcp", version.ref = "nmcp" }

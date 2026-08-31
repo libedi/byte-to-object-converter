@@ -173,9 +173,9 @@ ConvertFailException (abstract base)
 ├── InvalidAnnotationException
 │   ├── MissingFormatException — @ConvertData field missing format for date-time type
 │   └── NegativeLengthException — invalid negative length in @ConvertData
-├── TypeConversionException
-│   ├── DateParsingException — failed to parse date-time value
-│   └── NumberParsingException — failed to parse numeric value
+├── TypeConversionException — failed to convert field value (e.g., Enum constant lookup, thrown directly with no dedicated subtype)
+│   ├── DateParsingException — failed to parse date-time value (java.time types, including Month)
+│   └── NumberParsingException — failed to parse numeric wrapper value
 └── ReflectionException
     ├── FieldAccessException — failed to access field via reflection
     └── ConstructorInvocationException — failed to invoke default constructor

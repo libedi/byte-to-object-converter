@@ -197,7 +197,9 @@ Since v2.0.0, the converter provides a structured exception hierarchy for error 
 - **`ConvertFailException`** - Base abstract exception for all conversion/deconversion failures
   - **`ValidationException`** - Raised when input validation fails (e.g., null input)
   - **`InvalidAnnotationException`** - Raised when annotation configuration is incorrect
-  - **`TypeConversionException`** - Raised when field type conversion (parsing) fails
+  - **`TypeConversionException`** - Raised when field type conversion (parsing) fails (e.g., Enum constant lookup)
+    - **`NumberParsingException`** - Raised when a numeric wrapper field's value is not a valid number
+    - **`DateParsingException`** - Raised when a `java.time` date-time field's value (including `Month`) is not a valid date/month
   - **`ReflectionException`** - Raised when reflection operations (field access or constructor invocation) fail
 
 Usage example:

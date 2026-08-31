@@ -197,7 +197,9 @@ v2.0.0부터 converter는 오류 처리를 위한 구조화된 예외 계층을 
 - **`ConvertFailException`** - 모든 변환/역변환 실패에 대한 기본 추상 예외
   - **`ValidationException`** - 입력 검증 실패 시 발생 (예: null 입력)
   - **`InvalidAnnotationException`** - 애노테이션 설정이 잘못되었을 때 발생
-  - **`TypeConversionException`** - 필드 타입 변환(파싱) 실패 시 발생
+  - **`TypeConversionException`** - 필드 타입 변환(파싱) 실패 시 발생 (예: Enum 상수 조회 실패)
+    - **`NumberParsingException`** - 숫자 Wrapper 타입 필드의 값이 유효한 숫자가 아닐 때 발생
+    - **`DateParsingException`** - `java.time` 날짜-시간 타입 필드(`Month` 포함)의 값이 유효한 날짜/월이 아닐 때 발생
   - **`ReflectionException`** - 리플렉션 작업(필드 접근 또는 생성자 호출) 실패 시 발생
 
 사용 예제:

@@ -30,6 +30,7 @@ dependencies {
     testImplementation(libs.assertj.core)
     testImplementation(libs.autoparams)
     testImplementation(libs.autoparams.lombok)
+    testImplementation(libs.jqwik)
 
     testCompileOnly(libs.lombok)
     testAnnotationProcessor(libs.lombok)
