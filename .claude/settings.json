@@ -21,7 +21,10 @@
       "Bash(cp ~/.claude/skills/git-worktree-create/SKILL.md .claude/skills/git-worktree-create/SKILL.md)",
       "Bash(cp ~/.claude/skills/skill-creator/SKILL.md .claude/skills/skill-creator/SKILL.md)",
       "Bash(mv ~/.claude/rules/backlog.md ~/.claude/rules/backlog-rules.md)",
-      "Bash(mv .claude/rules/backlog.md .claude/rules/backlog-rules.md)"
+      "Bash(mv .claude/rules/backlog.md .claude/rules/backlog-rules.md)",
+      "Bash(curl -s \"https://search.maven.org/solrsearch/select?q=g:net.jqwik+AND+a:jqwik&core=gav&rows=20&wt=json\")",
+      "Bash(curl -s \"https://search.maven.org/solrsearch/select?q=g:net.jqwik+AND+a:jqwik&core=gav&rows=5&wt=json\")",
+      "Bash(echo \"exit: $?\")"
     ],
     "additionalDirectories": [
       "C:\\Users\\libed\\.claude"
