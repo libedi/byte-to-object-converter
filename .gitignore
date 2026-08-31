@@ -254,8 +254,23 @@ gradle-app.setting
 ### Gradle Patch ###
 **/build/
 
+# Local-only Gradle properties (may contain signing/Central Portal credentials)
+gradle.properties
+
 # Eclipse Gradle plugin generated files
 # Eclipse Core
 # JDT-specific (Eclipse Java Development Tools)
+
+### Git Worktrees ###
+.claude/worktrees/
+
+### Claude Code personal settings ###
+.claude/settings.local.json
+
+### Backlog Document ###
+backlog.md
+
+### jqwik ###
+.jqwik-database
 
 # End of https://www.toptal.com/developers/gitignore/api/java,eclipse,intellij,maven,git,gradle

@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
+import java.time.DateTimeException;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -23,6 +24,14 @@ import io.github.libedi.converter.annotation.ConvertData;
 import io.github.libedi.converter.annotation.Embeddable;
 import io.github.libedi.converter.annotation.Iteration;
 import io.github.libedi.converter.exception.ConvertFailException;
+import io.github.libedi.converter.exception.ConstructorInvocationException;
+import io.github.libedi.converter.exception.DateParsingException;
+import io.github.libedi.converter.exception.FieldAccessException;
+import io.github.libedi.converter.exception.MissingFormatException;
+import io.github.libedi.converter.exception.NegativeLengthException;
+import io.github.libedi.converter.exception.NullInputException;
+import io.github.libedi.converter.exception.NumberParsingException;
+import io.github.libedi.converter.exception.TypeConversionException;
 
 /**
  * <p>
@@ -98,7 +107,7 @@ class ConversionHelper extends AbstractCommonHelper {
      */
     private <T> void validateArguments(final InputStream inputStream, final Class<T> type) {
         if (inputStream == null || type == null) {
-            throw new ConvertFailException("Neither inputStream nor type must be null.");
+            throw new NullInputException("Neither inputStream nor type must be null.");
         }
     }
 
@@ -113,7 +122,7 @@ class ConversionHelper extends AbstractCommonHelper {
         try {
             return makeAccessible(type.getDeclaredConstructor()).newInstance();
         } catch (final ReflectiveOperationException e) {
-            throw new ConvertFailException(e);
+            throw new ConstructorInvocationException("Failed to invoke constructor for type: " + type.getName(), e);
         }
     }
 
@@ -148,7 +157,7 @@ class ConversionHelper extends AbstractCommonHelper {
             }
             FieldUtils.writeField(field, targetObject, extractData(field, inputStream, targetObject, type), true);
         } catch (IOException | ReflectiveOperationException e) {
-            throw new ConvertFailException(e);
+            throw new FieldAccessException("Failed to set field: " + field.getName(), e);
         }
     }
 
@@ -161,15 +170,12 @@ class ConversionHelper extends AbstractCommonHelper {
      * @param targetObject
      * @param type
      * @return
-     * @throws IOException
      * @throws IllegalAccessException
-     * @throws InvocationTargetException
+     * @throws IOException
      * @throws NoSuchMethodException
-     * @throws NumberFormatException
      */
     private <T> Object extractData(final Field field, final InputStream inputStream, final T targetObject,
-            final Class<T> type) throws IllegalAccessException, IOException, NumberFormatException,
-            NoSuchMethodException, InvocationTargetException {
+            final Class<T> type) throws IllegalAccessException, IOException, NoSuchMethodException {
         if (field.isAnnotationPresent(Iteration.class) && ClassUtils.isAssignable(List.class, field.getType())) {
             return inputStream.available() == 0 ? Collections.emptyList()
                     : extractIteratedData(field, inputStream, targetObject, type);
@@ -245,7 +251,7 @@ class ConversionHelper extends AbstractCommonHelper {
         try {
             return readInputStream(inputStream, inputStream.available());
         } catch (final IOException e) {
-            throw new ConvertFailException(e);
+            throw new TypeConversionException("Failed to read from input stream", e);
         }
     }
 
@@ -258,30 +264,28 @@ class ConversionHelper extends AbstractCommonHelper {
      */
     private byte[] readInputStream(final InputStream inputStream, final int length) {
         if (length < 0) {
-            throw new ConvertFailException("ConvertData#length() value must not be negative.");
+            throw new NegativeLengthException("ConvertData#length() value must not be negative.");
         }
         try {
             final byte[] buf = new byte[length];
             inputStream.read(buf);
             return buf;
         } catch (final IOException e) {
-            throw new ConvertFailException(e);
+            throw new TypeConversionException("Failed to read input stream data", e);
         }
     }
 
     /**
      * 필드 타입별 데이터 값 설정
-     * 
+     *
      * @param field
      * @param bytes
      * @return
-     * @throws InvocationTargetException
-     * @throws IllegalAccessException
      * @throws NoSuchMethodException
-     * @throws NumberFormatException
+     * @throws IllegalAccessException
      */
     private Object invokeSetValueByFieldType(final Field field, final byte[] bytes)
-            throws NumberFormatException, NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+            throws NoSuchMethodException, IllegalAccessException {
         final Class<?> fieldType = field.getType();
         if (ClassUtils.isAssignable(fieldType, byte[].class)) {
             return bytes;
@@ -297,21 +301,98 @@ class ConversionHelper extends AbstractCommonHelper {
             return invokeAdditionalFieldFunction.apply(fieldType, value);
         }
         if (ClassUtils.isAssignable(fieldType, Month.class)) {
-            return MethodUtils.invokeStaticMethod(fieldType, "of", Integer.parseInt(value));
+            return parseMonth(value);
         }
-        if (!ClassUtils.isAssignable(fieldType, Void.class) && ClassUtils.isPrimitiveOrWrapper(fieldType)
-                || fieldType.isEnum()) {
-            final Class<?> type = ClassUtils.primitiveToWrapper(fieldType);
-            return MethodUtils.invokeStaticMethod(type, "valueOf", value);
+        if (fieldType.isEnum()) {
+            return parseEnum(fieldType, value);
+        }
+        if (!ClassUtils.isAssignable(fieldType, Void.class) && ClassUtils.isPrimitiveOrWrapper(fieldType)) {
+            return parsePrimitiveOrWrapper(fieldType, value);
         }
         if (isJavaTimePackageClass(fieldType)) {
-            final String format = field.getAnnotation(ConvertData.class).format();
-            if (StringUtils.isBlank(format)) {
-                throw new ConvertFailException("Date format must not be empty.");
-            }
-            return MethodUtils.invokeStaticMethod(fieldType, "parse", value, DateTimeFormatter.ofPattern(format));
+            return parseDateTime(field, fieldType, value);
         }
         return null;
+    }
+
+    /**
+     * Month 타입 파싱
+     *
+     * @param value
+     * @return
+     */
+    private Object parseMonth(final String value) {
+        final int monthValue;
+        try {
+            monthValue = Integer.parseInt(value);
+        } catch (final NumberFormatException e) {
+            throw new DateParsingException("Failed to parse month value: " + value, e);
+        }
+        try {
+            return Month.of(monthValue);
+        } catch (final DateTimeException e) {
+            throw new DateParsingException("Invalid month value: " + monthValue, e);
+        }
+    }
+
+    /**
+     * java.time date-time 타입 파싱
+     *
+     * @param field
+     * @param fieldType
+     * @param value
+     * @return
+     * @throws NoSuchMethodException
+     * @throws IllegalAccessException
+     */
+    private Object parseDateTime(final Field field, final Class<?> fieldType, final String value)
+            throws NoSuchMethodException, IllegalAccessException {
+        final String format = field.getAnnotation(ConvertData.class).format();
+        if (StringUtils.isBlank(format)) {
+            throw new MissingFormatException("Date format must not be empty.");
+        }
+        try {
+            return MethodUtils.invokeStaticMethod(fieldType, "parse", value, DateTimeFormatter.ofPattern(format));
+        } catch (final InvocationTargetException e) {
+            throw new DateParsingException("Failed to parse date-time value: " + value, e.getCause());
+        }
+    }
+
+    /**
+     * Enum 타입 파싱
+     *
+     * @param fieldType
+     * @param value
+     * @return
+     * @throws NoSuchMethodException
+     * @throws IllegalAccessException
+     */
+    private Object parseEnum(final Class<?> fieldType, final String value)
+            throws NoSuchMethodException, IllegalAccessException {
+        try {
+            return MethodUtils.invokeStaticMethod(fieldType, "valueOf", value);
+        } catch (final InvocationTargetException e) {
+            throw new TypeConversionException("Failed to convert value to enum constant: " + fieldType.getName(), e.getCause());
+        }
+    }
+
+    /**
+     * primitive/Wrapper 타입 파싱
+     *
+     * @param fieldType
+     * @param value
+     * @return
+     * @throws NoSuchMethodException
+     * @throws IllegalAccessException
+     */
+    private Object parsePrimitiveOrWrapper(final Class<?> fieldType, final String value)
+            throws NoSuchMethodException, IllegalAccessException {
+        final Class<?> type = ClassUtils.primitiveToWrapper(fieldType);
+        try {
+            return MethodUtils.invokeStaticMethod(type, "valueOf", value);
+        } catch (final InvocationTargetException e) {
+            throw new NumberParsingException("Failed to parse number for field type: " + fieldType.getName(), e.getCause());
+        }
     }
 
     /**
@@ -326,7 +407,7 @@ class ConversionHelper extends AbstractCommonHelper {
         try {
             return StringUtils.trim(new String(readInputStream(inputStream, length), dataCharset));
         } catch (final RuntimeException e) {
-            throw new ConvertFailException(e);
+            throw new TypeConversionException("Failed to convert data to string", e);
         }
     }
 

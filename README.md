@@ -19,7 +19,8 @@ Supported types are:
 | :exclamation: Important |
 |:-------------------------|
 | The target Object must have a default constructor. (private accessors are also available) |
-| Since v2.0.0, Spring Framework dependency has been removed. The library now uses **Apache Commons Lang 3.14.0** for utility functions. |
+| Since v2.0.0, Spring Framework dependency has been removed. The library now uses **Apache Commons Lang 3.20.0** for utility functions. |
+| Since v2.0.0, the library requires **Java 25 or later** and is built with **Gradle**. This is a breaking change from 1.x, which targeted Java 8. |
 
 ## **How to use**
 **`ByteToObjectConverter`** is a tool that enables the conversion of data from a byte array to an Object.  
@@ -196,7 +197,9 @@ Since v2.0.0, the converter provides a structured exception hierarchy for error 
 - **`ConvertFailException`** - Base abstract exception for all conversion/deconversion failures
   - **`ValidationException`** - Raised when input validation fails (e.g., null input)
   - **`InvalidAnnotationException`** - Raised when annotation configuration is incorrect
-  - **`TypeConversionException`** - Raised when field type conversion (parsing) fails
+  - **`TypeConversionException`** - Raised when field type conversion (parsing) fails (e.g., Enum constant lookup)
+    - **`NumberParsingException`** - Raised when a numeric wrapper field's value is not a valid number
+    - **`DateParsingException`** - Raised when a `java.time` date-time field's value (including `Month`) is not a valid date/month
   - **`ReflectionException`** - Raised when reflection operations (field access or constructor invocation) fail
 
 Usage example:
@@ -220,10 +223,14 @@ try {
 ~~~
 
 ## **Requirements**
-- Java 8 or later
-- Apache Commons Lang 3.14.0 (automatically included as a dependency)
+- Java 25 or later (Java 8 was supported through 1.x; this is a breaking change in v2.0.0)
+- Apache Commons Lang 3.20.0 (automatically included as a dependency)
 
 ## **Installation**
+- ### **Gradle**
+~~~kotlin
+implementation("io.github.libedi:byte-to-object-converter:2.0.0")
+~~~
 - ### **Maven**
 ~~~xml
 <dependency>
@@ -232,9 +239,16 @@ try {
     <version>2.0.0</version>
 </dependency>
 ~~~
-- ### **Gradle**
-~~~groovy
-implementation 'io.github.libedi:byte-to-object-converter:2.0.0'
+
+## **Build from source**
+
+This project is built with Gradle (wrapper included, no local Gradle install required):
+~~~bash
+# Build the library (compile, run tests, package)
+./gradlew clean build
+
+# Run all tests
+./gradlew test
 ~~~
 
 ## **Changelog**
@@ -244,5 +258,6 @@ implementation 'io.github.libedi:byte-to-object-converter:2.0.0'
 - **New**: Added `DataAlignment` enum to control string padding (LEFT/RIGHT) during deconversion
 - **New**: Added `@Ignorable` annotation to skip null fields during deconversion
 - **Breaking Change**: Removed Spring Framework dependency (was Spring 5.0+)
-- **Enhancement**: Replaced Spring utilities with Apache Commons Lang 3.14.0
+- **Breaking Change**: Minimum Java version raised from 8 to 25; build system switched from Maven to Gradle
+- **Enhancement**: Replaced Spring utilities with Apache Commons Lang 3.20.0
 - **Improved**: Structured exception hierarchy with specific exception types for better error handling

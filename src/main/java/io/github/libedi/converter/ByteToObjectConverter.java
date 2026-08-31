@@ -2,6 +2,7 @@ package io.github.libedi.converter;
 
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -10,7 +11,13 @@ import io.github.libedi.converter.annotation.ConvertData;
 import io.github.libedi.converter.annotation.Embeddable;
 import io.github.libedi.converter.annotation.Ignorable;
 import io.github.libedi.converter.annotation.Iteration;
+import io.github.libedi.converter.exception.ConstructorInvocationException;
 import io.github.libedi.converter.exception.ConvertFailException;
+import io.github.libedi.converter.exception.FieldAccessException;
+import io.github.libedi.converter.exception.InvalidAnnotationException;
+import io.github.libedi.converter.exception.NullInputException;
+import io.github.libedi.converter.exception.ReflectionException;
+import io.github.libedi.converter.exception.TypeConversionException;
 
 /**
  * <p>
@@ -377,7 +384,7 @@ public class ByteToObjectConverter {
             try {
                 return hasAdditionalType(fieldType);
             } catch (final Exception e) {
-                throw new ConvertFailException(e);
+                throw new ReflectionException("Failed to check additional type", e);
             }
         };
     }
@@ -392,7 +399,7 @@ public class ByteToObjectConverter {
             try {
                 return invokeAdditionalField(fieldType, value);
             } catch (final Exception e) {
-                throw new ConvertFailException(e);
+                throw new TypeConversionException("Failed to invoke additional field conversion", e);
             }
         };
     }
@@ -407,7 +414,7 @@ public class ByteToObjectConverter {
             try {
                 return changeAdditionalDataToString(fieldData);
             } catch (final Exception e) {
-                throw new ConvertFailException(e);
+                throw new TypeConversionException("Failed to convert additional data to string", e);
             }
         };
     }

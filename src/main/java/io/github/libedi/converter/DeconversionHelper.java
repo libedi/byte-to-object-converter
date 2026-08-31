@@ -24,6 +24,10 @@ import io.github.libedi.converter.annotation.Embeddable;
 import io.github.libedi.converter.annotation.Ignorable;
 import io.github.libedi.converter.annotation.Iteration;
 import io.github.libedi.converter.exception.ConvertFailException;
+import io.github.libedi.converter.exception.FieldAccessException;
+import io.github.libedi.converter.exception.MissingFormatException;
+import io.github.libedi.converter.exception.NullInputException;
+import io.github.libedi.converter.exception.ReflectionException;
 
 /**
  * <p>
@@ -104,7 +108,7 @@ class DeconversionHelper extends AbstractCommonHelper {
      */
     private void validateArguments(final Object targetObject) {
         if (targetObject == null) {
-            throw new ConvertFailException("targetObject must not be null.");
+            throw new NullInputException("targetObject must not be null.");
         }
     }
 
@@ -133,7 +137,7 @@ class DeconversionHelper extends AbstractCommonHelper {
         try {
             baos.write(bytes);
         } catch (final IOException e) {
-            throw new ConvertFailException(e);
+            throw new FieldAccessException("Failed to write field data", e);
         }
     }
 
@@ -160,7 +164,7 @@ class DeconversionHelper extends AbstractCommonHelper {
             }
             return deconvertFieldDataToBytes(field, targetObject, fieldValue, alignment);
         } catch (final ReflectiveOperationException e) {
-            throw new ConvertFailException(e);
+            throw new FieldAccessException("Failed to access field for deconversion", e);
         }
     }
 
@@ -175,11 +179,10 @@ class DeconversionHelper extends AbstractCommonHelper {
      * @throws NoSuchMethodException
      * @throws SecurityException
      * @throws IllegalAccessException
-     * @throws InvocationTargetException
      */
     private byte[] extractIteratedData(final Field field, final Object targetObject, final Object listValue,
             final DataAlignment alignment)
-            throws NoSuchMethodException, SecurityException, IllegalAccessException, InvocationTargetException {
+            throws NoSuchMethodException, SecurityException, IllegalAccessException {
         final int size = getListSize(listValue);
         final Constructor<?> elementConstructor = makeAccessible(getGenericType(field).getDeclaredConstructor());
         final ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -217,13 +220,9 @@ class DeconversionHelper extends AbstractCommonHelper {
      *
      * @param list
      * @return
-     * @throws NoSuchMethodException
-     * @throws IllegalAccessException
-     * @throws InvocationTargetException
      */
-    private int getListSize(final Object list)
-            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
-        return list == null ? 0 : (int) MethodUtils.invokeMethod(list, true, "size");
+    private int getListSize(final Object list) {
+        return list == null ? 0 : ((List<?>) list).size();
     }
 
     /**
@@ -236,14 +235,13 @@ class DeconversionHelper extends AbstractCommonHelper {
      * @param i
      * @return
      */
-    private byte[] deconvertElement(final Object targetObject, final DataAlignment alignment, final int size,
+    private byte[] deconvertElement(final Object listValue, final DataAlignment alignment, final int size,
             final Constructor<?> elementConstructor, final int i) {
         try {
-            final Object element = i < size ? MethodUtils.invokeMethod(targetObject, true, "get", i)
-                    : elementConstructor.newInstance();
+            final Object element = i < size ? ((List<?>) listValue).get(i) : elementConstructor.newInstance();
             return deconvert(element, alignment);
         } catch (final ReflectiveOperationException e) {
-            throw new ConvertFailException(e);
+            throw new ReflectionException("Failed to deconvert list element", e);
         }
     }
 
@@ -322,7 +320,7 @@ class DeconversionHelper extends AbstractCommonHelper {
         if (isJavaTimePackageClass(fieldType)) {
             final String format = field.getAnnotation(ConvertData.class).format();
             if (StringUtils.isBlank(format)) {
-                throw new ConvertFailException("Date format must not be empty.");
+                throw new MissingFormatException("Date format must not be empty.");
             }
             return (String) MethodUtils.invokeMethod(value, true, "format", DateTimeFormatter.ofPattern(format));
         }

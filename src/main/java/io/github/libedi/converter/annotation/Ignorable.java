@@ -7,6 +7,8 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
+import io.github.libedi.converter.ByteToObjectConverter;
+
 /**
  * <p>
  * Object를 byte[]로 역변환할 때 조건부로 필드를 무시하기 위한 annotation입니다.

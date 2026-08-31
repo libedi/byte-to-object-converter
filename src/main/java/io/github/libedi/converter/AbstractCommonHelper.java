@@ -62,7 +62,7 @@ abstract class AbstractCommonHelper {
      */
     protected <T> Constructor<T> makeAccessible(final Constructor<T> constructor) {
         if ((!Modifier.isPublic(constructor.getModifiers())
-                || !Modifier.isPublic(constructor.getDeclaringClass().getModifiers())) && !constructor.isAccessible()) {
+                || !Modifier.isPublic(constructor.getDeclaringClass().getModifiers())) && !constructor.canAccess(null)) {
             constructor.setAccessible(true);
         }
         return constructor;

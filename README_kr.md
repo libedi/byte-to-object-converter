@@ -19,7 +19,8 @@
 | :exclamation: 중요 |
 |:-------------------------|
 | 대상 Object는 반드시 기본 생성자를 갖고 있어야 합니다. (private 접근자도 가능) |
-| v2.0.0부터 Spring Framework 의존성이 제거되었습니다. 라이브러리는 이제 **Apache Commons Lang 3.14.0**을 사용합니다. |
+| v2.0.0부터 Spring Framework 의존성이 제거되었습니다. 라이브러리는 이제 **Apache Commons Lang 3.20.0**을 사용합니다. |
+| v2.0.0부터 **Java 25 이상**이 필요하며, 빌드 시스템으로 **Gradle**을 사용합니다. Java 8을 대상으로 하던 1.x 버전과 호환되지 않는 변경 사항(breaking change)입니다. |
 
 ## **사용 방법**
 **`ByteToObjectConverter`** 를 사용하여 byte 배열의 데이터를 Object로 변환할 수 있습니다.  
@@ -196,7 +197,9 @@ v2.0.0부터 converter는 오류 처리를 위한 구조화된 예외 계층을 
 - **`ConvertFailException`** - 모든 변환/역변환 실패에 대한 기본 추상 예외
   - **`ValidationException`** - 입력 검증 실패 시 발생 (예: null 입력)
   - **`InvalidAnnotationException`** - 애노테이션 설정이 잘못되었을 때 발생
-  - **`TypeConversionException`** - 필드 타입 변환(파싱) 실패 시 발생
+  - **`TypeConversionException`** - 필드 타입 변환(파싱) 실패 시 발생 (예: Enum 상수 조회 실패)
+    - **`NumberParsingException`** - 숫자 Wrapper 타입 필드의 값이 유효한 숫자가 아닐 때 발생
+    - **`DateParsingException`** - `java.time` 날짜-시간 타입 필드(`Month` 포함)의 값이 유효한 날짜/월이 아닐 때 발생
   - **`ReflectionException`** - 리플렉션 작업(필드 접근 또는 생성자 호출) 실패 시 발생
 
 사용 예제:
@@ -220,10 +223,14 @@ try {
 ~~~
 
 ## **최소 사양**
-- Java 8 이상
-- Apache Commons Lang 3.14.0 (자동으로 의존성에 포함됨)
+- Java 25 이상 (1.x까지는 Java 8을 지원했으며, v2.0.0에서 호환되지 않게 변경됨)
+- Apache Commons Lang 3.20.0 (자동으로 의존성에 포함됨)
 
 ## **설치**
+- ### **Gradle**
+~~~kotlin
+implementation("io.github.libedi:byte-to-object-converter:2.0.0")
+~~~
 - ### **Maven**
 ~~~xml
 <dependency>
@@ -232,9 +239,16 @@ try {
     <version>2.0.0</version>
 </dependency>
 ~~~
-- ### **Gradle**
-~~~groovy
-implementation 'io.github.libedi:byte-to-object-converter:2.0.0'
+
+## **소스 빌드**
+
+이 프로젝트는 Gradle로 빌드합니다(Wrapper가 포함되어 있어 별도 Gradle 설치가 필요 없습니다):
+~~~bash
+# 라이브러리 빌드 (컴파일, 테스트 실행, 패키징)
+./gradlew clean build
+
+# 전체 테스트 실행
+./gradlew test
 ~~~
 
 ## **변경 사항**
@@ -244,5 +258,6 @@ implementation 'io.github.libedi:byte-to-object-converter:2.0.0'
 - **신규**: 역변환 중 문자열 패딩을 제어하는 `DataAlignment` enum 추가 (LEFT/RIGHT)
 - **신규**: 역변환 중 null 필드를 스킵하는 `@Ignorable` 애노테이션 추가
 - **주요 변경**: Spring Framework 의존성 제거 (기존: Spring 5.0+)
-- **개선**: Spring 유틸리티를 Apache Commons Lang 3.14.0으로 교체
+- **주요 변경**: 최소 Java 버전이 8에서 25로 상향, 빌드 시스템이 Maven에서 Gradle로 전환
+- **개선**: Spring 유틸리티를 Apache Commons Lang 3.20.0으로 교체
 - **개선**: 더 나은 오류 처리를 위해 구조화된 예외 계층 추가

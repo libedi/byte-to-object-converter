@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **byte-to-object-converter** (v2.0.0) is a Java library that provides bidirectional conversion between byte arrays and Objects. It simplifies handling data from legacy systems that use byte array data telegrams, supporting both serialization (byte[] → Object) and deserialization (Object → byte[]).
 
-This is a published Maven library distributed via Maven Central (groupId: `io.github.libedi`).
+This is a published Java library distributed via Maven Central (groupId: `io.github.libedi`), built with Gradle. It requires Java 25 or later.
 
 ## Architecture
 
@@ -81,19 +81,19 @@ Supported field types:
 
 ```bash
 # Build the library (compile, run tests, package)
-mvn clean install
+./gradlew clean build
 
 # Run all tests
-mvn test
+./gradlew test
 
 # Run a single test class
-mvn test -Dtest=ByteToObjectConverterTest
+./gradlew test --tests "io.github.libedi.converter.ByteToObjectConverterTest"
 
 # Run a single test method
-mvn test -Dtest=ByteToObjectConverterTest#testMethodName
+./gradlew test --tests "io.github.libedi.converter.ByteToObjectConverterTest.testMethodName"
 
 # Build without running tests
-mvn clean install -DskipTests
+./gradlew clean build -x test
 ```
 
 ### Project Structure
@@ -126,23 +126,23 @@ src/
 
 ### Dependencies
 
+Versions are managed centrally via the Gradle version catalog at [gradle/libs.versions.toml](gradle/libs.versions.toml).
+
 **Runtime** (bundled with the library):
-- Apache Commons Lang 3.14.0 **[NEW in v2.0]**
+- Apache Commons Lang 3.20.0 **[NEW in v2.0]**
   - `StringUtils` — string padding and manipulation
   - `ArrayUtils` — byte array operations
   - `FieldUtils`, `MethodUtils` — safe reflection utilities
   - `ClassUtils` — class introspection
 
 **Test-only**:
-- JUnit 5.9.3 (Jupiter)
-- Mockito 5.3.1
-- AssertJ 3.24.2
-- AutoParams 1.1.1 (parameterized test generation)
-- Lombok 1.18.28 (test annotations)
-- Spring Test 5.0.0.RELEASE
-- Commons Lang 3.12.0 (test utilities)
+- JUnit 5.14.4 (Jupiter, via BOM)
+- Mockito 5.22.0
+- AssertJ 3.27.7
+- AutoParams 11.3.2 (parameterized test generation)
+- Lombok 1.18.38 (test annotations)
 
-**Note**: Spring Framework is NO LONGER a runtime dependency as of v2.0. Commons Lang3 replaces Spring's utility classes.
+**Note**: Spring Framework is NO LONGER a dependency as of v2.0 — Commons Lang3 replaces Spring's utility classes, including in tests (`FieldUtils` replaces the former Spring-based reflection helper).
 
 ### Testing Notes
 
@@ -152,15 +152,15 @@ src/
 
 ### Key Configuration
 
-**pom.xml properties**:
-- Java version: 1.8 (source and target)
+**[build.gradle.kts](build.gradle.kts)**:
+- Java toolchain: 25 (via `java.toolchain.languageVersion`)
 - Project version: 2.0.0
-- Character encoding: UTF-8
+- Character encoding: UTF-8 (Javadoc)
 
 **Build plugins**:
-- Maven Enforcer: enforces Java 1.8+
-- Maven Compiler: targets Java 1.8
-- Maven GPG, Javadoc, Source, Nexus Staging: for publishing to Maven Central
+- `java-library`, `maven-publish`, `signing`: core build, publication descriptor, and GPG signing
+- `nmcp` (Central Portal publisher): publishes to Maven Central via the Sonatype Central Portal
+- Sources and Javadoc jars are generated automatically (`withSourcesJar()`, `withJavadocJar()`)
 
 ## Exception Handling **[NEW in v2.0]**
 
@@ -173,9 +173,9 @@ ConvertFailException (abstract base)
 ├── InvalidAnnotationException
 │   ├── MissingFormatException — @ConvertData field missing format for date-time type
 │   └── NegativeLengthException — invalid negative length in @ConvertData
-├── TypeConversionException
-│   ├── DateParsingException — failed to parse date-time value
-│   └── NumberParsingException — failed to parse numeric value
+├── TypeConversionException — failed to convert field value (e.g., Enum constant lookup, thrown directly with no dedicated subtype)
+│   ├── DateParsingException — failed to parse date-time value (java.time types, including Month)
+│   └── NumberParsingException — failed to parse numeric wrapper value
 └── ReflectionException
     ├── FieldAccessException — failed to access field via reflection
     └── ConstructorInvocationException — failed to invoke default constructor
@@ -273,12 +273,12 @@ Create a target class with annotations, wrap test byte data in `ByteArrayInputSt
 
 ## Publishing
 
-This library is published to Maven Central. The pom.xml is configured for:
-- Automatic GPG signing (signs artifacts on build)
+This library is published to Maven Central via the Sonatype Central Portal. `build.gradle.kts` is configured for:
+- Automatic GPG signing (signs artifacts on build, gated by the `signing.required` project property)
 - Javadoc and source JAR generation
-- Nexus Staging (auto-release after close)
+- Publishing via the `nmcp` plugin (`publishAllPublicationsToCentralPortal`), using `centralPortalUsername`/`centralPortalPassword` Gradle properties
 
-To publish a new version, update the version in pom.xml and push—the CI/CD pipeline handles Maven Central publication via Sonatype OSSRH.
+To publish a new version, update `version` in `build.gradle.kts` and run the `nmcp` publish task with signing enabled and Central Portal credentials configured.
 
 ## References
 

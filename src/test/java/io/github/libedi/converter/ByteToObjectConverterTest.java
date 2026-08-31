@@ -8,18 +8,20 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.junit.jupiter.api.Test;
 
 import autoparams.AutoSource;
@@ -29,6 +31,10 @@ import autoparams.lombok.BuilderCustomizer;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.github.libedi.converter.exception.ConvertFailException;
+import io.github.libedi.converter.exception.DateParsingException;
+import io.github.libedi.converter.exception.FieldAccessException;
+import io.github.libedi.converter.exception.NumberParsingException;
+import io.github.libedi.converter.exception.TypeConversionException;
 import io.github.libedi.converter.annotation.ConvertData;
 import io.github.libedi.converter.annotation.Embeddable;
 import io.github.libedi.converter.annotation.Ignorable;
@@ -61,12 +67,12 @@ class ByteToObjectConverterTest {
     @Customization(BuilderCustomizer.class)
     void convert(final TestObject expected) throws Exception {
         // given
-        ReflectionTestUtils.setField(expected, "dateTimeValue",
+        FieldUtils.writeField(expected, "dateTimeValue",
                 LocalDateTime.parse(expected.getDateTimeValue().format(DateTimeFormatter.ofPattern(DATETIME_FORMAT)),
-                        DateTimeFormatter.ofPattern(DATETIME_FORMAT))); // truncate milliseconds
-        ReflectionTestUtils.setField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size());
-        ReflectionTestUtils.setField(expected, "voList", expected.getVoList().subList(0, 2));
-        ReflectionTestUtils.setField(expected, "ignorable", null);
+                        DateTimeFormatter.ofPattern(DATETIME_FORMAT)), true); // truncate milliseconds
+        FieldUtils.writeField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size(), true);
+        FieldUtils.writeField(expected, "voList", expected.getVoList().subList(0, 2), true);
+        FieldUtils.writeField(expected, "ignorable", null, true);
 
         final InputStream inputStream = new ByteArrayInputStream(convertTestData(expected));
 
@@ -99,12 +105,12 @@ class ByteToObjectConverterTest {
     @Customization(BuilderCustomizer.class)
     void deconvert(final TestObject expected) throws Exception {
         // given
-        ReflectionTestUtils.setField(expected, "dateTimeValue",
+        FieldUtils.writeField(expected, "dateTimeValue",
                 LocalDateTime.parse(expected.getDateTimeValue().format(DateTimeFormatter.ofPattern(DATETIME_FORMAT)),
-                        DateTimeFormatter.ofPattern(DATETIME_FORMAT))); // truncate milliseconds
-        ReflectionTestUtils.setField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size());
-        ReflectionTestUtils.setField(expected, "voList", expected.getVoList().subList(0, 2));
-        ReflectionTestUtils.setField(expected, "ignorable", null);
+                        DateTimeFormatter.ofPattern(DATETIME_FORMAT)), true); // truncate milliseconds
+        FieldUtils.writeField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size(), true);
+        FieldUtils.writeField(expected, "voList", expected.getVoList().subList(0, 2), true);
+        FieldUtils.writeField(expected, "ignorable", null, true);
 
         final byte[] expectedBytes = convertTestData(expected);
 
@@ -121,12 +127,12 @@ class ByteToObjectConverterTest {
     @Customization(BuilderCustomizer.class)
     void testDeconvert_DataAlignmentRIGHT(final TestObject expected) throws Exception {
         // given
-        ReflectionTestUtils.setField(expected, "dateTimeValue",
+        FieldUtils.writeField(expected, "dateTimeValue",
                 LocalDateTime.parse(expected.getDateTimeValue().format(DateTimeFormatter.ofPattern(DATETIME_FORMAT)),
-                        DateTimeFormatter.ofPattern(DATETIME_FORMAT))); // truncate milliseconds
-        ReflectionTestUtils.setField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size());
-        ReflectionTestUtils.setField(expected, "voList", expected.getVoList().subList(0, 2));
-        ReflectionTestUtils.setField(expected, "ignorable", null);
+                        DateTimeFormatter.ofPattern(DATETIME_FORMAT)), true); // truncate milliseconds
+        FieldUtils.writeField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size(), true);
+        FieldUtils.writeField(expected, "voList", expected.getVoList().subList(0, 2), true);
+        FieldUtils.writeField(expected, "ignorable", null, true);
 
         // when
         final byte[] rightAligned = converter.deconvert(expected, DataAlignment.RIGHT);
@@ -152,12 +158,12 @@ class ByteToObjectConverterTest {
     @Customization(BuilderCustomizer.class)
     void testDeconvert_IgnorableNonNullField(final TestObject expected) throws Exception {
         // given
-        ReflectionTestUtils.setField(expected, "dateTimeValue",
+        FieldUtils.writeField(expected, "dateTimeValue",
                 LocalDateTime.parse(expected.getDateTimeValue().format(DateTimeFormatter.ofPattern(DATETIME_FORMAT)),
-                        DateTimeFormatter.ofPattern(DATETIME_FORMAT))); // truncate milliseconds
-        ReflectionTestUtils.setField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size());
-        ReflectionTestUtils.setField(expected, "voList", expected.getVoList().subList(0, 2));
-        ReflectionTestUtils.setField(expected, "ignorable", "testValue"); // Ignorable 필드에 값 설정
+                        DateTimeFormatter.ofPattern(DATETIME_FORMAT)), true); // truncate milliseconds
+        FieldUtils.writeField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size(), true);
+        FieldUtils.writeField(expected, "voList", expected.getVoList().subList(0, 2), true);
+        FieldUtils.writeField(expected, "ignorable", "testValue", true); // Ignorable 필드에 값 설정
 
         // when
         final byte[] actual = converter.deconvert(expected, DataAlignment.LEFT);
@@ -165,7 +171,7 @@ class ByteToObjectConverterTest {
         // then
         assertThat(actual).isNotEmpty();
         // ignorable 필드가 포함되어야 하므로 결과는 null일 때보다 더 길어야 함
-        ReflectionTestUtils.setField(expected, "ignorable", null);
+        FieldUtils.writeField(expected, "ignorable", null, true);
         final byte[] withoutIgnorable = converter.deconvert(expected, DataAlignment.LEFT);
         assertThat(actual.length).isGreaterThan(withoutIgnorable.length);
     }
@@ -176,12 +182,12 @@ class ByteToObjectConverterTest {
     @Customization(BuilderCustomizer.class)
     void testDeconvert_IgnorableNullField(final TestObject expected) throws Exception {
         // given
-        ReflectionTestUtils.setField(expected, "dateTimeValue",
+        FieldUtils.writeField(expected, "dateTimeValue",
                 LocalDateTime.parse(expected.getDateTimeValue().format(DateTimeFormatter.ofPattern(DATETIME_FORMAT)),
-                        DateTimeFormatter.ofPattern(DATETIME_FORMAT))); // truncate milliseconds
-        ReflectionTestUtils.setField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size());
-        ReflectionTestUtils.setField(expected, "voList", expected.getVoList().subList(0, 2));
-        ReflectionTestUtils.setField(expected, "ignorable", null); // Ignorable 필드를 null로 명시
+                        DateTimeFormatter.ofPattern(DATETIME_FORMAT)), true); // truncate milliseconds
+        FieldUtils.writeField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size(), true);
+        FieldUtils.writeField(expected, "voList", expected.getVoList().subList(0, 2), true);
+        FieldUtils.writeField(expected, "ignorable", null, true); // Ignorable 필드를 null로 명시
 
         // when
         final byte[] resultWithNullIgnorable = converter.deconvert(expected, DataAlignment.LEFT);
@@ -190,7 +196,7 @@ class ByteToObjectConverterTest {
         assertThat(resultWithNullIgnorable).isNotEmpty();
 
         // ignorable 필드가 null일 때와 값이 있을 때의 바이트 길이 비교
-        ReflectionTestUtils.setField(expected, "ignorable", "testValue");
+        FieldUtils.writeField(expected, "ignorable", "testValue", true);
         final byte[] resultWithValueIgnorable = converter.deconvert(expected, DataAlignment.LEFT);
         // null일 때는 ignorable 필드가 제외되므로 더 작은 바이트 길이여야 함
         assertThat(resultWithNullIgnorable.length).isLessThan(resultWithValueIgnorable.length);
@@ -204,18 +210,217 @@ class ByteToObjectConverterTest {
                 .isInstanceOf(ConvertFailException.class);
     }
 
+    @DisplayName("숫자 Wrapper 타입 필드 파싱 실패 시 NumberParsingException 발생 (cause는 원본 NumberFormatException)")
+    @Test
+    void convert_whenNumericWrapperFieldParsingFails_thenThrowsNumberParsingException() {
+        // given
+        final String invalidNumber = StringUtils.rightPad("abc", 15); // intValue: @ConvertData(15)
+        final InputStream inputStream = new ByteArrayInputStream(invalidNumber.getBytes(DATA_CHARSET));
+
+        // when & then
+        assertThatThrownBy(() -> converter.convert(inputStream, TestObject.class))
+                .isInstanceOf(NumberParsingException.class)
+                .extracting(Throwable::getCause)
+                .isInstanceOf(NumberFormatException.class);
+    }
+
+    @DisplayName("Enum 타입 필드 파싱 실패 시 하위 타입이 아닌 TypeConversionException 발생 (cause는 원본 IllegalArgumentException)")
+    @Test
+    void convert_whenEnumFieldParsingFails_thenThrowsTypeConversionException() {
+        // given
+        // TestObject 필드 선언 순서: intValue, longValue, doubleValue, stringValue, monthValue, dateValue,
+        // dateTimeValue, enumValue(파싱 실패 대상, 유효하지 않은 Week 상수명) 순으로 읽히므로 enumValue 앞의 필드는
+        // 모두 유효한 값으로 채워 enumValue에서만 예외가 발생하도록 한다.
+        final String dataString =
+                StringUtils.rightPad("1", 15)                          // intValue
+                        + StringUtils.rightPad("1", 30)                // longValue
+                        + StringUtils.rightPad("1.0", 30)               // doubleValue
+                        + StringUtils.rightPad("test", 40)              // stringValue
+                        + StringUtils.rightPad("1", 2)                  // monthValue
+                        + StringUtils.rightPad("2024-01-01", 10)        // dateValue
+                        + StringUtils.rightPad("2024-01-01 00:00:00", 19) // dateTimeValue
+                        + StringUtils.rightPad("XXX", 3);               // enumValue: 유효하지 않은 Week 상수명
+        final InputStream inputStream = new ByteArrayInputStream(dataString.getBytes(DATA_CHARSET));
+
+        // when & then
+        assertThatThrownBy(() -> converter.convert(inputStream, TestObject.class))
+                .isExactlyInstanceOf(TypeConversionException.class)
+                .extracting(Throwable::getCause)
+                .isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @DisplayName("Month 필드 값이 정수로 파싱되지 않으면 DateParsingException 발생 (cause는 원본 NumberFormatException)")
+    @Test
+    void convert_whenMonthFieldValueIsNotParsableAsInteger_thenThrowsDateParsingException() {
+        // given
+        // TestObject 필드 선언 순서: intValue, longValue, doubleValue, stringValue, monthValue(파싱 실패 대상) 순으로
+        // 읽히므로 monthValue 앞의 필드는 모두 유효한 값으로 채워 monthValue에서만 예외가 발생하도록 한다.
+        final String dataString =
+                StringUtils.rightPad("1", 15)              // intValue
+                        + StringUtils.rightPad("1", 30)    // longValue
+                        + StringUtils.rightPad("1.0", 30)  // doubleValue
+                        + StringUtils.rightPad("test", 40) // stringValue
+                        + StringUtils.rightPad("ab", 2);   // monthValue: 정수로 파싱 불가능
+        final InputStream inputStream = new ByteArrayInputStream(dataString.getBytes(DATA_CHARSET));
+
+        // when & then
+        assertThatThrownBy(() -> converter.convert(inputStream, TestObject.class))
+                .isInstanceOf(DateParsingException.class)
+                .extracting(Throwable::getCause)
+                .isInstanceOf(NumberFormatException.class);
+    }
+
+    @DisplayName("Month 필드 값이 정수이지만 1~12 범위를 벗어나면 DateParsingException 발생 (cause는 원본 DateTimeException)")
+    @Test
+    void convert_whenMonthFieldValueOutOfRange_thenThrowsDateParsingException() {
+        // given
+        // TestObject 필드 선언 순서: intValue, longValue, doubleValue, stringValue, monthValue(파싱 실패 대상) 순으로
+        // 읽히므로 monthValue 앞의 필드는 모두 유효한 값으로 채워 monthValue에서만 예외가 발생하도록 한다.
+        final String dataString =
+                StringUtils.rightPad("1", 15)              // intValue
+                        + StringUtils.rightPad("1", 30)    // longValue
+                        + StringUtils.rightPad("1.0", 30)  // doubleValue
+                        + StringUtils.rightPad("test", 40) // stringValue
+                        + StringUtils.rightPad("13", 2);   // monthValue: 정수이지만 1~12 범위 초과
+        final InputStream inputStream = new ByteArrayInputStream(dataString.getBytes(DATA_CHARSET));
+
+        // when & then
+        assertThatThrownBy(() -> converter.convert(inputStream, TestObject.class))
+                .isInstanceOf(DateParsingException.class)
+                .extracting(Throwable::getCause)
+                .isInstanceOf(DateTimeException.class);
+    }
+
+    @DisplayName("format 패턴으로 파싱 불가능한 java.time date-time 필드 값은 DateParsingException 발생 (cause는 원본 DateTimeParseException)")
+    @Test
+    void convert_whenDateTimeFieldValueDoesNotMatchFormat_thenThrowsDateParsingException() {
+        // given
+        // TestObject 필드 선언 순서: intValue, longValue, doubleValue, stringValue, monthValue, dateValue(파싱 실패
+        // 대상, format = DATE_FORMAT) 순으로 읽히므로 dateValue 앞의 필드는 모두 유효한 값으로 채워 dateValue에서만
+        // 예외가 발생하도록 한다.
+        final String dataString =
+                StringUtils.rightPad("1", 15)                 // intValue
+                        + StringUtils.rightPad("1", 30)       // longValue
+                        + StringUtils.rightPad("1.0", 30)     // doubleValue
+                        + StringUtils.rightPad("test", 40)    // stringValue
+                        + StringUtils.rightPad("1", 2)        // monthValue
+                        + StringUtils.rightPad("XXXX-XX-XX", 10); // dateValue: DATE_FORMAT("yyyy-MM-dd")로 파싱 불가능
+        final InputStream inputStream = new ByteArrayInputStream(dataString.getBytes(DATA_CHARSET));
+
+        // when & then
+        assertThatThrownBy(() -> converter.convert(inputStream, TestObject.class))
+                .isInstanceOf(DateParsingException.class)
+                .extracting(Throwable::getCause)
+                .isInstanceOf(DateTimeParseException.class);
+    }
+
+    @DisplayName("valueOf(String) 정적 메서드 자체가 없는 타입(Character) 필드는 파싱과 무관한 리플렉션 오류이므로 회귀 없이 FieldAccessException 발생")
+    @Test
+    void convert_whenFieldTypeHasNoValueOfStringMethod_thenThrowsFieldAccessException() {
+        // given
+        // Character는 valueOf(String) 정적 메서드 자체가 없어 파싱 실패가 아닌 리플렉션 오류(NoSuchMethodException)로
+        // 귀결되므로, Requirement 1~3의 변경과 무관하게 기존과 동일하게 FieldAccessException이 던져져야 한다.
+        final String dataString = StringUtils.rightPad("A", 1); // charValue: @ConvertData(1)
+        final InputStream inputStream = new ByteArrayInputStream(dataString.getBytes(DATA_CHARSET));
+
+        // when & then
+        assertThatThrownBy(() -> converter.convert(inputStream, CharacterFieldFixture.class))
+                .isInstanceOf(FieldAccessException.class);
+    }
+
+    @DisplayName("숫자 Wrapper 타입 필드의 trim 후 빈 문자열은 예외 없이 null로 유지됨")
+    @Test
+    void convert_whenNumericWrapperFieldValueIsBlank_thenFieldRemainsNullWithoutException() {
+        // given
+        final String dataString = StringUtils.rightPad("", 15); // intWrapperValue: @ConvertData(15), 공백
+        final InputStream inputStream = new ByteArrayInputStream(dataString.getBytes(DATA_CHARSET));
+
+        // when
+        final IntegerFieldFixture actual = converter.convert(inputStream, IntegerFieldFixture.class);
+
+        // then
+        assertThat(actual.getIntWrapperValue()).isNull();
+    }
+
+    @DisplayName("Month 타입 필드의 trim 후 빈 문자열은 예외 없이 null로 유지됨")
+    @Test
+    void convert_whenMonthFieldValueIsBlank_thenFieldRemainsNullWithoutException() {
+        // given
+        // TestObject 필드 선언 순서: intValue, longValue, doubleValue, stringValue, monthValue(빈 값 대상) 순으로
+        // 읽히므로 monthValue 앞의 필드는 모두 유효한 값으로 채운다.
+        final String dataString =
+                StringUtils.rightPad("1", 15)              // intValue
+                        + StringUtils.rightPad("1", 30)    // longValue
+                        + StringUtils.rightPad("1.0", 30)  // doubleValue
+                        + StringUtils.rightPad("test", 40) // stringValue
+                        + StringUtils.rightPad("", 2);     // monthValue: 공백
+        final InputStream inputStream = new ByteArrayInputStream(dataString.getBytes(DATA_CHARSET));
+
+        // when
+        final TestObject actual = converter.convert(inputStream, TestObject.class);
+
+        // then
+        assertThat(actual.getMonthValue()).isNull();
+    }
+
+    @DisplayName("Enum 타입 필드의 trim 후 빈 문자열은 예외 없이 null로 유지됨")
+    @Test
+    void convert_whenEnumFieldValueIsBlank_thenFieldRemainsNullWithoutException() {
+        // given
+        // TestObject 필드 선언 순서: intValue, longValue, doubleValue, stringValue, monthValue, dateValue,
+        // dateTimeValue, enumValue(빈 값 대상) 순으로 읽히므로 enumValue 앞의 필드는 모두 유효한 값으로 채운다.
+        final String dataString =
+                StringUtils.rightPad("1", 15)                          // intValue
+                        + StringUtils.rightPad("1", 30)                // longValue
+                        + StringUtils.rightPad("1.0", 30)               // doubleValue
+                        + StringUtils.rightPad("test", 40)              // stringValue
+                        + StringUtils.rightPad("1", 2)                  // monthValue
+                        + StringUtils.rightPad("2024-01-01", 10)        // dateValue
+                        + StringUtils.rightPad("2024-01-01 00:00:00", 19) // dateTimeValue
+                        + StringUtils.rightPad("", 3);                  // enumValue: 공백
+        final InputStream inputStream = new ByteArrayInputStream(dataString.getBytes(DATA_CHARSET));
+
+        // when
+        final TestObject actual = converter.convert(inputStream, TestObject.class);
+
+        // then
+        assertThat(actual.getEnumValue()).isNull();
+    }
+
+    @DisplayName("java.time date-time 타입 필드의 trim 후 빈 문자열은 예외 없이 null로 유지됨")
+    @Test
+    void convert_whenDateTimeFieldValueIsBlank_thenFieldRemainsNullWithoutException() {
+        // given
+        // TestObject 필드 선언 순서: intValue, longValue, doubleValue, stringValue, monthValue, dateValue(빈 값
+        // 대상) 순으로 읽히므로 dateValue 앞의 필드는 모두 유효한 값으로 채운다.
+        final String dataString =
+                StringUtils.rightPad("1", 15)              // intValue
+                        + StringUtils.rightPad("1", 30)    // longValue
+                        + StringUtils.rightPad("1.0", 30)  // doubleValue
+                        + StringUtils.rightPad("test", 40) // stringValue
+                        + StringUtils.rightPad("1", 2)     // monthValue
+                        + StringUtils.rightPad("", 10);    // dateValue: 공백
+        final InputStream inputStream = new ByteArrayInputStream(dataString.getBytes(DATA_CHARSET));
+
+        // when
+        final TestObject actual = converter.convert(inputStream, TestObject.class);
+
+        // then
+        assertThat(actual.getDateValue()).isNull();
+    }
+
     @DisplayName("convertInputStream() 메서드 - InputStream에서 지정 길이만큼 읽기")
     @ParameterizedTest
     @AutoSource
     @Customization(BuilderCustomizer.class)
     void testConvertInputStream_DirectMethod(final TestObject expected) throws Exception {
         // given
-        ReflectionTestUtils.setField(expected, "dateTimeValue",
+        FieldUtils.writeField(expected, "dateTimeValue",
                 LocalDateTime.parse(expected.getDateTimeValue().format(DateTimeFormatter.ofPattern(DATETIME_FORMAT)),
-                        DateTimeFormatter.ofPattern(DATETIME_FORMAT))); // truncate milliseconds
-        ReflectionTestUtils.setField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size());
-        ReflectionTestUtils.setField(expected, "voList", expected.getVoList().subList(0, 2));
-        ReflectionTestUtils.setField(expected, "ignorable", null);
+                        DateTimeFormatter.ofPattern(DATETIME_FORMAT)), true); // truncate milliseconds
+        FieldUtils.writeField(expected.getNestedLoopValue(), "count", expected.getNestedLoopValue().list.size(), true);
+        FieldUtils.writeField(expected, "voList", expected.getVoList().subList(0, 2), true);
+        FieldUtils.writeField(expected, "ignorable", null, true);
 
         final byte[] testData = convertTestData(expected);
         final InputStream inputStream = new ByteArrayInputStream(testData);
@@ -225,15 +430,12 @@ class ByteToObjectConverterTest {
         final String actual = converter.convertInputStream(inputStream, intValueLength);
 
         // then
-        // 읽은 데이터의 길이가 정확히 요청한 길이여야 함
-        assertThat(actual).isNotNull();
-        assertThat(actual.length()).isEqualTo(intValueLength);
-        // 읽은 데이터를 trim하면 원본 intValue와 동일해야 함
-        assertThat(actual.trim()).isEqualTo(String.valueOf(expected.getIntValue()));
-        // 읽은 후 다음 바이트를 읽으면 longValue의 첫 부분이어야 함
+        // convertInputStream()은 읽은 데이터를 trim하여 반환하므로 원본 intValue와 동일해야 함
+        assertThat(actual).isEqualTo(String.valueOf(expected.getIntValue()));
+        // 읽은 후 다음 바이트를 읽으면 longValue의 첫 부분이어야 함 (raw 데이터와 직접 비교하여 읽기 위치 검증)
         final String nextBytes = converter.convertInputStream(inputStream, 5);
-        assertThat(nextBytes).isNotNull();
-        assertThat(nextBytes.length()).isEqualTo(5);
+        final String expectedNextBytes = new String(testData, intValueLength, 5, DATA_CHARSET).trim();
+        assertThat(nextBytes).isEqualTo(expectedNextBytes);
     }
 
     @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -306,6 +508,29 @@ class ByteToObjectConverterTest {
         private int count;
         @Iteration(countField = "count")
         private List<TestVO> list;
+    }
+
+    /**
+     * {@code Character}는 {@code valueOf(String)} 정적 메서드 자체가 없어 파싱과 무관한 리플렉션 오류
+     * ({@code NoSuchMethodException})로 귀결되는지 검증하기 위한 최소 픽스처.
+     */
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    @Getter
+    public static class CharacterFieldFixture {
+        @ConvertData(1)
+        private Character charValue;
+    }
+
+    /**
+     * 숫자 Wrapper 타입 필드의 trim 후 빈 문자열이 예외 없이 {@code null}로 유지되는지 검증하기 위한 최소 픽스처.
+     * {@code TestObject}의 숫자 필드는 모두 primitive(intValue/longValue/doubleValue)라 Requirement 5.1이 다루는
+     * "참조 타입(숫자 Wrapper) 필드"를 검증하려면 실제 Wrapper 타입 필드를 가진 별도 픽스처가 필요하다.
+     */
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
+    @Getter
+    public static class IntegerFieldFixture {
+        @ConvertData(15)
+        private Integer intWrapperValue;
     }
 
     private byte[] convertTestData(final TestObject expected) throws IOException {

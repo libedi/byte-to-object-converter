@@ -12,7 +12,6 @@ package io.github.libedi.converter.exception;
  * <li>문자열에 숫자가 아닌 문자가 포함된 경우</li>
  * <li>숫자 범위를 초과하는 경우 (예: Long의 범위를 벗어난 값)</li>
  * <li>부동소수점 형식이 잘못된 경우</li>
- * <li>공백을 포함한 문자열인 경우</li>
  * </ul>
  * <p>
  * 예:
